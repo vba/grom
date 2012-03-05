@@ -7,9 +7,13 @@ import play.api.mvc._
 import play.libs.Akka._
 import play.api.Play.current
 
-import org.icepdf.core.pobjects.Document
 import tools.Context
-import java.io.File
+import play.Configuration
+import org.icepdf.core.util.GraphicsRenderingHints
+import org.icepdf.core.pobjects.{Page, Document}
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.io.{FileInputStream, ByteArrayInputStream, ByteArrayOutputStream, File}
 
 object Converter extends Controller {
 
@@ -65,9 +69,22 @@ object Converter extends Controller {
 		}
 
 		val document = new Document
+		val rh = GraphicsRenderingHints.SCREEN
+		val pb = Page.BOUNDARY_CROPBOX
+		val cs = Context.conversionScale
+		var l = List.empty[String]
+
 		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
 
-		Some(Json.toJson(""))
+		for (i <- 0 to document.getNumberOfPages) {
+			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
+			val tmp = File.createTempFile("grom-",".png")
+			
+			ImageIO.write (image, "png", tmp)
+			l = Context.getStorage.get.store (tmp) :: l
+		}
+
+		Some (Json toJson l)
 	}
 
 	def test1 (id:String) = Action {

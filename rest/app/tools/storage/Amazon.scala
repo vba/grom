@@ -3,7 +3,9 @@ package tools.storage
 import play.api.{Logger, Configuration}
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
-import java.io.InputStream
+import tools.security.Sha1DigestInputStream
+import java.io.{FileInputStream, File, InputStream}
+import com.amazonaws.services.s3.model.{PutObjectRequest, ObjectMetadata}
 
 object Amazon extends Storage {
 
@@ -37,5 +39,29 @@ object Amazon extends Storage {
 			}
 			case _ => None
 		}
+	}
+
+	def store (file: File) : String = {
+		val is = new FileInputStream(file)
+		val sha1 = Sha1DigestInputStream.make(is)
+		val key = prefix.concat("-page-").concat(sha1.getSha1)
+		
+		if (!(this has key)) {
+			val meta = new ObjectMetadata
+			meta setContentLength file.length()
+			client.get.putObject(bucket, key, is, meta)
+			Logger.debug(key.concat(" is sent to amazon"))
+		}
+
+		sha1.close()
+		is.close ()
+		key
+	}
+
+	private def has (key: String) : Boolean = {
+		if (!client.isDefined) return false
+
+		try { client.get.getObjectMetadata (bucket, key) != null }
+		catch { case e:Throwable => Logger.error(e.getMessage,e); return false }
 	}
 }
