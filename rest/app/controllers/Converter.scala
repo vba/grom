@@ -1,8 +1,11 @@
 package controllers
 
 import play.api._
+import libs.concurrent.Akka
+import libs.json.{JsValue, Json}
 import play.api.mvc._
 import play.libs.Akka._
+import play.api.Play.current
 
 import org.icepdf.core.pobjects.Document
 
@@ -46,12 +49,17 @@ object Converter extends Controller {
 
 */
 
-	def test1() = Action {
-		AsyncResult
+	def test1 (id:String) = Action {
+		val promise = Akka.future {convert (id)}
 		Async {
-			val document = new Document()
-			Ok("In progress")
+			promise.map { json =>
+				//ResponseHeader (200, Map(CONTENT_TYPE -> "application/json"))
+				Ok (json)
+			}
 		}
-		//Ok("In progress")
+	}
+
+	def convert (id:String):JsValue = {
+		Json.toJson("")
 	}
 }
