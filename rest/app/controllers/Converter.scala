@@ -8,6 +8,8 @@ import play.libs.Akka._
 import play.api.Play.current
 
 import org.icepdf.core.pobjects.Document
+import tools.Context
+import java.io.File
 
 object Converter extends Controller {
 
@@ -50,6 +52,20 @@ object Converter extends Controller {
 */
 
 	private def convert (id:String): Option[JsValue] = {
+		if (!Context.getStorage.isDefined) {
+			Logger warn "No storage defined"
+			return None
+		}
+
+		val stream = Context.getStorage.get.getStream(id)
+
+		if (!stream.isDefined) {
+			Logger warn "No resource found for ".concat (id).concat (" key")
+			return None
+		}
+
+		val document = new Document
+		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
 
 		Some(Json.toJson(""))
 	}
