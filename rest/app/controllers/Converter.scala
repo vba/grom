@@ -49,17 +49,23 @@ object Converter extends Controller {
 
 */
 
+	private def convert (id:String): Option[JsValue] = {
+
+		Some(Json.toJson(""))
+	}
+
 	def test1 (id:String) = Action {
 		val promise = Akka.future {convert (id)}
 		Async {
 			promise.map { json =>
-				//ResponseHeader (200, Map(CONTENT_TYPE -> "application/json"))
-				Ok (json)
+				if (json.isDefined) {
+					//ResponseHeader (200, Map(CONTENT_TYPE -> "application/json"))
+					Ok (json.get)
+				} else {
+					NotFound
+				}
 			}
 		}
 	}
 
-	def convert (id:String):JsValue = {
-		Json.toJson("")
-	}
 }
