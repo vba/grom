@@ -9,8 +9,10 @@ import com.amazonaws.services.s3.model.{AmazonS3Exception, PutObjectRequest, Obj
 
 object Amazon extends Storage {
 
-	private var bucket = ""
-	private var prefix = ""
+	private var access = ""
+	private var secret = ""
+	private[storage] var bucket = ""
+	private[storage] var prefix = ""
 	private[storage] var client : Option[S3] = None
 	
 	def configure (c: Configuration) : Storage = {
@@ -18,11 +20,14 @@ object Amazon extends Storage {
 		if (client.isDefined) return this
 		Logger debug "Configuring amazon storage provider"
 
-		val conf = (k:String) => c.getString ("amazon.".concat(k)).getOrElse("")
+		val conf = (k:String) => c.getString ("amazon.".concat(k), None).getOrElse("")
 
-		client = Some (new S3 (new Credentials (conf ("access_key"), conf ("secret_key"))))
 		bucket = conf ("bucket")
 		prefix = conf ("prefix")
+		access = conf ("access_key")
+		secret = conf ("secret_key")
+
+		client = Some (new S3 (new Credentials (access, secret)))
 
 		this
 	}
@@ -51,7 +56,7 @@ object Amazon extends Storage {
 		key
 	}
 
-	private def has (key: String) : Boolean = {
+	private[storage] def has (key: String) : Boolean = {
 		if (!client.isDefined) return false
 
 		try { client.get.getObjectMetadata (bucket, key) != null }
@@ -60,4 +65,7 @@ object Amazon extends Storage {
 			case e: Throwable => Logger.error (e.getMessage, e); return false
 		}
 	}
+
+	def getAccess = access
+	def getSecret = secret
 }
