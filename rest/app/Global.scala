@@ -6,6 +6,6 @@ object Global extends GlobalSettings {
 
 
 	override def onStart(app: Application) {
-		Context configure configuration
+		Context configure app.configuration
 	}
 }

@@ -1,8 +1,8 @@
 package tools.storage
 
-import tools.Context
-import java.io.{FileOutputStream, FileInputStream, InputStream, File}
+import java.io.{FileInputStream, InputStream, File}
 import play.api.{Configuration, Logger}
+import play.api.libs.Files
 
 
 object FileSystem extends Storage {
@@ -41,38 +41,16 @@ object FileSystem extends Storage {
 	}
 
 	def store (file: File) : String = {
-		val (key,sha1) = hash(file, prefix)
-		write (sha1,key);
-	}
-
-	private def getPath (sp: String, key: String = inboxKey) : String = {
-		Context
-			.getConfig.get
-			.getString(key)
-			.getOrElse("~/Temp")
-			.concat("/")
-			.concat(sp)
+		val key = hash(file, prefix)
+		write (file, key)
 	}
 	
 	private def combineInbox (sp: String): String = inbox.getOrElse(tmp).getCanonicalPath.concat("/").concat(sp)
 	private def combineOutbox (sp: String): String = outbox.getOrElse(tmp).getCanonicalPath.concat("/").concat(sp)
 
-	private def write (is:InputStream, key:String) : String = {
-		val file = new File (combineOutbox(key).concat(".png"))
-		if (file.exists()) file.delete()
-
-		var read = 0
-		val out = new FileOutputStream (file)
-		val portion = new Array[Byte](1024)
-
-		while ((read = is.read(portion)) != -1) {
-			out.write(portion, 0, read);
-		}
-
-		is.close()
-		out.flush()
-		out.close()
-
-		file.getCanonicalPath
+	private def write (in:File, key:String) : String = {
+		val out = new File (combineOutbox(key).concat(".png"))
+		Files.copyFile (in, out, false, true)
+		out.getCanonicalPath
 	}
 }

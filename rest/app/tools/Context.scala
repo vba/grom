@@ -32,7 +32,7 @@ object Context {
 	private def getConfig[T] (k:String,df:String="") : T = {
 		config.get.getString ("conversion.".concat(k)).getOrElse(df).asInstanceOf[T]
 	}
-	def conversionScale: Float = getConfig("scale","2.5")
+	def conversionScale = getConfig[String]("scale","2.5").toFloat
 	def getStorage = storage
 	def getConfig = config
 }

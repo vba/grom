@@ -38,7 +38,7 @@ object Converter extends Controller {
 
 		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
 
-		for (i <- 0 to document.getNumberOfPages) {
+		for (i <- 0 to document.getNumberOfPages - 1) {
 			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
 			val tmp = File.createTempFile("grom-",".png")
 			

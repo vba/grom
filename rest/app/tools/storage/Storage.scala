@@ -2,19 +2,22 @@ package tools.storage
 
 import java.io.{FileInputStream, File, InputStream}
 import tools.security.{Sha1DigestInputStream => SDIStream}
+import com.google.common.io.{ByteStreams, Files}
+import io.Source
 
 
 trait Storage {
 
 	def getStream (key : String) : Option[InputStream]
 	def store (file: File) : String
-	def hash (file: File, prefix: String = ""): (String, SDIStream) = {
+	def hash (file: File, prefix: String = "na"): String = {
 
 		val is = new FileInputStream(file)
 		val sha1 = SDIStream.make(is)
-		val key = prefix.concat("-page-").concat(sha1.getSha1)
+		val key = prefix.concat("-page-").concat(sha1.getHash)
 		
 		is.close()
-		(key, sha1)
+		sha1.close()
+		key
 	}
 }
