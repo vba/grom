@@ -28,7 +28,10 @@ object Context {
 		storage = Some (provider.get configure conf)
 	}
 
-	private def getConfig[T] (k:String,df:String="") : T = config.get.getString ("conversion.".concat(k)).getOrElse(df).asInstanceOf[T];
+	private def getConfig[T] (k:String,df:String="") : T = {
+		config.get.getString ("conversion.".concat(k)).getOrElse(df).asInstanceOf[T]
+	}
 	def conversionScale: Float = getConfig("scale","2.5")
 	def getStorage = storage
+	def getConfig = config
 }

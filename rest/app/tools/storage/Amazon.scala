@@ -42,19 +42,16 @@ object Amazon extends Storage {
 	}
 
 	def store (file: File) : String = {
-		val is = new FileInputStream(file)
-		val sha1 = Sha1DigestInputStream.make(is)
-		val key = prefix.concat("-page-").concat(sha1.getSha1)
-		
+		val (key,sha1) = hash(file, prefix)
+
 		if (!(this has key)) {
 			val meta = new ObjectMetadata
 			meta setContentLength file.length()
-			client.get.putObject(bucket, key, is, meta)
+			client.get.putObject(bucket, key, sha1, meta)
 			Logger.debug(key.concat(" is sent to amazon"))
 		}
 
 		sha1.close()
-		is.close ()
 		key
 	}
 
