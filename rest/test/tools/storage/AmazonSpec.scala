@@ -5,9 +5,9 @@ import org.mockito.Matchers._
 import org.specs2.mock._
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import java.io.InputStream
-import com.amazonaws.services.s3.model.{AmazonS3Exception, S3Object}
 import com.amazonaws.AmazonClientException
 import play.api.Configuration
+import com.amazonaws.services.s3.model.{ObjectMetadata, AmazonS3Exception, S3Object}
 
 class AmazonSpec extends Specification with Mockito {
 
@@ -43,6 +43,32 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.getSecret mustEqual t._2
 			Amazon.bucket mustEqual t._3
 			Amazon.prefix mustEqual t._4
+		}
+	}
+
+	"Amazon existense check" should {
+		"not work if client is not defined" in {
+			val client = mock[Option[S3]]
+			client.isDefined returns false
+
+			Amazon.has("none") must beEqualTo (false)
+			there was no (client).get
+		}
+		"works correctly with mocking" in {
+			val client = mock[Option[S3]]
+			val s3 = mock[S3]
+			
+			s3.getObjectMetadata("bucket","key") returns mock[ObjectMetadata]
+			s3.getObjectMetadata("bucket","e") throws new AmazonS3Exception("Not found")
+			client.isDefined returns true
+			client.get returns s3
+
+
+			Amazon.bucket = "bucket"
+			Amazon.client = client
+			Amazon.has("key") must beEqualTo (true)
+			Amazon.has("none") must beEqualTo (false)
+			Amazon.has("e") must beEqualTo (false)
 		}
 	}
 
