@@ -45,3 +45,14 @@ logger.play=INFO
 # Logger provided to your application:
 logger.application=DEBUG
 
+# storage.type=(fs|amazon)
+storage.type=amazon
+amazon.access_key=MY-KEY
+amazon.secret_key=MY-SECRET
+amazon.bucket=MY-BUCKET
+amazon.prefix=MY-PREFIX
+
+fs.inbox=/tmp/inbox
+fs.outbox=/tmp/outbox
+
+conversion.scale=2.5
