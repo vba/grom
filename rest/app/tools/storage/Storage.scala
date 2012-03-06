@@ -2,8 +2,6 @@ package tools.storage
 
 import java.io.{FileInputStream, File, InputStream}
 import tools.security.{Sha1DigestInputStream => SDIStream}
-import com.google.common.io.{ByteStreams, Files}
-import io.Source
 
 
 trait Storage {

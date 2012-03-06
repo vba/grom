@@ -9,7 +9,8 @@ object ApplicationBuild extends Build {
 
 	val appDependencies = Seq(
 		"com.amazonaws" % "aws-java-sdk" % "1.0.002",
-		"org.scalatest" % "scalatest" % "1.7.1" % "test"
+		"org.mockito" % "mockito-core" % "1.9.0",
+		"org.specs2" %% "specs2" % "1.8.2" % "test"
 	)
 
 	val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)
