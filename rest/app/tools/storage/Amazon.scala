@@ -5,13 +5,13 @@ import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
 import tools.security.Sha1DigestInputStream
 import java.io.{FileInputStream, File, InputStream}
-import com.amazonaws.services.s3.model.{PutObjectRequest, ObjectMetadata}
+import com.amazonaws.services.s3.model.{AmazonS3Exception, PutObjectRequest, ObjectMetadata}
 
 object Amazon extends Storage {
 
 	private var bucket = ""
 	private var prefix = ""
-	private var client : Option[S3] = None
+	private[storage] var client : Option[S3] = None
 	
 	def configure (c: Configuration) : Storage = {
 
@@ -21,8 +21,8 @@ object Amazon extends Storage {
 		val conf = (k:String) => c.getString ("amazon.".concat(k)).getOrElse("")
 
 		client = Some (new S3 (new Credentials (conf ("access_key"), conf ("secret_key"))))
-		bucket = conf ("access_key")
-		prefix = conf ("access_key")
+		bucket = conf ("bucket")
+		prefix = conf ("prefix")
 
 		this
 	}
@@ -42,7 +42,7 @@ object Amazon extends Storage {
 	}
 
 	def store (file: File) : String = {
-		val key = hash(file, prefix)
+		val key = hash(file, prefix).concat(".png")
 
 		if (!(this has key)) {
 			client.get.putObject(bucket, key, file)
@@ -55,6 +55,9 @@ object Amazon extends Storage {
 		if (!client.isDefined) return false
 
 		try { client.get.getObjectMetadata (bucket, key) != null }
-		catch { case e:Throwable => Logger.error(e.getMessage,e); return false }
+		catch {
+			case e: AmazonS3Exception => Logger.warn ("Key " + key + " : " + e.getMessage); return false
+			case e: Throwable => Logger.error (e.getMessage, e); return false
+		}
 	}
 }

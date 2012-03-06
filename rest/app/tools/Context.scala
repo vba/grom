@@ -6,10 +6,10 @@ import storage.{FileSystem, Amazon, Storage}
 
 object Context {
 
-	private val storageProviders = Map[String,Option[{def configure(c: Configuration): Storage}]] {
-		"amazon" -> Some(Amazon)
+	private val storageProviders = Map[String,Option[{def configure(c: Configuration): Storage}]] (
+		"amazon" -> Some(Amazon),
 		"fs" -> Some(FileSystem)
-	}
+	)
 
 	private var storage: Option[Storage] = None
 	private var config : Option[Configuration] = None

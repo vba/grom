@@ -49,7 +49,7 @@ object Converter extends Controller {
 		Some (Json toJson l)
 	}
 
-	def test1 (id:String) = Action {
+	def pages (id:String) = Action {
 		val promise = Akka.future {convert (id)}
 		Async {
 			promise.map { json =>
