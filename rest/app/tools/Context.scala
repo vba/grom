@@ -1,14 +1,24 @@
 package tools
 
+import extractors.PdfToPng
 import play.api.{Logger, Configuration}
 import storage.{FileSystem, Amazon, Storage}
+import scala.collection.mutable.{SynchronizedSet, HashSet}
+import collection.immutable.Set
+import play.api.libs.json.JsValue
 
 
 object Context {
 
+	val keysToProcess = new HashSet[String] with SynchronizedSet[String]
+
 	private val storageProviders = Map[String,Option[{def configure(c: Configuration): Storage}]] (
 		"amazon" -> Some(Amazon),
 		"fs" -> Some(FileSystem)
+	)
+
+	val extractors = Set[Option[{def extract (id:String): Option[JsValue]}]] (
+		Some(PdfToPng)
 	)
 
 	private var storage: Option[Storage] = None
@@ -27,6 +37,21 @@ object Context {
 		}
 		
 		storage = Some (provider.get configure conf)
+	}
+
+	def processKeys () {
+		if (Context.keysToProcess.size == 0) {
+			Logger debug  "Nothing to process exit"
+			return
+		}
+		
+		val key = Context.keysToProcess.head
+		Context.keysToProcess.remove(key)
+		Logger debug  "Process "+key
+		
+		for (extractor <- Context.extractors if extractor.isDefined) {
+			extractor.get.extract(key)
+		}
 	}
 
 	private def getConfig[T] (k:String,df:String="") : T = {

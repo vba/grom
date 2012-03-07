@@ -11,7 +11,6 @@ import java.io.{File, InputStream}
 
 class AmazonSpec extends Specification with Mockito {
 
-
 	"Amazon configuration" should {
 		"configure client only if it's not defined" in {
 			val client = mock[Option[S3]]
