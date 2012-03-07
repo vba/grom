@@ -18,7 +18,7 @@ object Context {
 
 		config = Some (conf)
 
-		val st = conf.getString("storage.type").getOrElse(" EMPTY STORAGE TYPE ")
+		val st = conf.getString("storage.type", None).getOrElse(" EMPTY STORAGE TYPE ")
 		val provider = storageProviders.getOrElse(st, None)
 
 		if (!provider.isDefined) {
@@ -30,7 +30,7 @@ object Context {
 	}
 
 	private def getConfig[T] (k:String,df:String="") : T = {
-		config.get.getString ("conversion.".concat(k)).getOrElse(df).asInstanceOf[T]
+		config.get.getString ("conversion.".concat(k), None).getOrElse(df).asInstanceOf[T]
 	}
 	def conversionScale = getConfig[String]("scale","2.5").toFloat
 	def getStorage = storage

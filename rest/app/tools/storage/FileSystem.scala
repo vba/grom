@@ -18,7 +18,7 @@ object FileSystem extends Storage {
 	def configure (c: Configuration) : Storage = {
 
 		val f1 : (String) => Option[File] = (k: String) => {
-			val dir = new File (c.getString(k) getOrElse "~/Temp/".concat(k.replace("fs.","")))
+			val dir = new File (c.getString(k, None) getOrElse "~/Temp/".concat(k.replace("fs.","")))
 			if (!dir.exists()) {
 				// @TraineeCode possible collisions refactor after
 				Logger debug  "Creating ".concat(dir.getCanonicalPath)
