@@ -40,10 +40,7 @@ object Context {
 	}
 
 	def processKeys () {
-		if (Context.keysToProcess.size == 0) {
-			Logger debug  "Nothing to process exit"
-			return
-		}
+		if (Context.keysToProcess.size == 0) return
 		
 		val key = Context.keysToProcess.head
 		Context.keysToProcess.remove(key)

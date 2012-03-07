@@ -33,6 +33,10 @@ object Amazon extends Storage {
 		this
 	}
 
+	def storeMeta(key: String, file: File) {
+		store(file, key)
+	}
+
 	def getStream (key : String) : Option[InputStream] = {
 		if (!client.isDefined) return None;
 
@@ -49,15 +53,11 @@ object Amazon extends Storage {
 
 	def store (file: File) : String = {
 		val key = tryToHash (file)
-
-		if (!(this has key)) {
-			client.get.putObject(bucket, key, file)
-			Logger.debug(key.concat(" is sent to amazon"))
-		}
+		store (file, key)
 		key
 	}
-
-	private[storage] def has (key: String) : Boolean = {
+	
+	def has (key: String) : Boolean = {
 		if (!client.isDefined) return false
 
 		try { client.get.getObjectMetadata (bucket, key) != null }
@@ -65,6 +65,13 @@ object Amazon extends Storage {
 			case e: AmazonS3Exception => Logger.warn ("Key " + key + " : " + e.getMessage); return false
 			case e: Throwable => Logger.error (e.getMessage, e); return false
 		}
+	}
+
+	private def store (file: File, key: => String ) {
+		if (this has key) return
+		client.get.putObject(bucket, key, file)
+		Logger.debug(key.concat(" is sent to amazon"))
+		return
 	}
 
 	def getAccess = access

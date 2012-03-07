@@ -32,6 +32,10 @@ object FileSystem extends Storage {
 		this
 	}
 
+	def storeMeta(key: String, file: File) {
+		write (file, key, "")
+	}
+
 	def getStream (key: String) : Option[InputStream] = {
 		try {
 			Some(new FileInputStream(combineInbox (key)))
@@ -40,17 +44,20 @@ object FileSystem extends Storage {
 		}
 	}
 
+	def has (key: String) : Boolean = new File(combineOutbox(key)).exists()
+
 	def store (file: File) : String = {
 		val key = hash(file, prefix)
 		write (file, key)
 	}
-	
+
 	private def combineInbox (sp: String): String = inbox.getOrElse(tmp).getCanonicalPath.concat("/").concat(sp)
 	private def combineOutbox (sp: String): String = outbox.getOrElse(tmp).getCanonicalPath.concat("/").concat(sp)
 
-	private def write (in:File, key:String) : String = {
-		val out = new File (combineOutbox(key).concat(".png"))
+	private def write (in:File, key:String, suffix: String = ".png") : String = {
+		val out = new File (combineOutbox(key).concat(suffix))
 		Files.copyFile (in, out, false, true)
 		out.getCanonicalPath
 	}
+
 }

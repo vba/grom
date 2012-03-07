@@ -9,11 +9,19 @@ import java.io.File
 import tools.storage.FileSystem
 import play.api.libs.json.Json
 import controllers.Converter
+import play.api.libs.Files
 
 class PdfToPngSpec extends Specification with Mockito {
 
 	val base = new File(".").getCanonicalPath
+	
+	def delete(f:File) {
+		if (f.isDirectory) for (file <- f.listFiles()) delete(file)
+		f.delete()
+	}
 
+	delete (new File(base.concat("/target/test-out")))
+	
 	"Extract method " should {
 		"do nothing if storage/stream are not defined" in {
 			val conf = mock[Configuration]
@@ -24,6 +32,7 @@ class PdfToPngSpec extends Specification with Mockito {
 		}
 		"extract correctly on local file system" in {
 			val conf = mock[Configuration]
+
 			conf.getString("storage.type", None) returns Some("fs")
 			conf.getString("fs.inbox", None) returns Some(base.concat("/test/assets"))
 			conf.getString("fs.outbox", None) returns Some(base.concat("/target/test-out"))

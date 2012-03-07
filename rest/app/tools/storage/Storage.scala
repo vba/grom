@@ -8,6 +8,8 @@ trait Storage {
 
 	def getStream (key : String) : Option[InputStream]
 	def store (file: File) : String
+	def storeMeta (key:String, file: File)
+	def has (key: String) : Boolean
 	def hash (file: File, prefix: String = "na"): String = {
 
 		val is = new FileInputStream(file)
