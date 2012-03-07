@@ -14,26 +14,31 @@ import org.icepdf.core.pobjects.{Page, Document}
 import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
 import java.io.{FileInputStream, ByteArrayInputStream, ByteArrayOutputStream, File}
+import java.awt.Image
 
 object Converter extends Controller {
 
-	private def convert (id:String): Option[JsValue] = {
-		if (!Context.getStorage.isDefined) {
+	private[controllers] var makeDocument = new Document
+	private[controllers] var context = Context
+	private[controllers] var toFile = (i:BufferedImage,f:File) => ImageIO.write (i, "png", f)
+
+	private[controllers] def convert (id:String): Option[JsValue] = {
+		if (!context.getStorage.isDefined) {
 			Logger warn "No storage defined"
 			return None
 		}
 
-		val stream = Context.getStorage.get.getStream(id)
+		val stream = context.getStorage.get.getStream(id)
 
 		if (!stream.isDefined) {
 			Logger warn "No resource found for ".concat (id).concat (" key")
 			return None
 		}
 
-		val document = new Document
+		val document = makeDocument
 		val rh = GraphicsRenderingHints.SCREEN
 		val pb = Page.BOUNDARY_CROPBOX
-		val cs = Context.conversionScale
+		val cs = context.conversionScale
 		var l = List.empty[String]
 
 		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
@@ -42,8 +47,8 @@ object Converter extends Controller {
 			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
 			val tmp = File.createTempFile("grom-",".png")
 			
-			ImageIO.write (image, "png", tmp)
-			l = Context.getStorage.get.store (tmp) :: l
+			toFile (image, tmp)
+			l = context.getStorage.get.store (tmp) :: l
 		}
 
 		Some (Json toJson l)
