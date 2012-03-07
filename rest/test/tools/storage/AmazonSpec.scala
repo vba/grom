@@ -4,10 +4,10 @@ import org.specs2.mutable._
 import org.mockito.Matchers._
 import org.specs2.mock._
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
-import java.io.InputStream
 import com.amazonaws.AmazonClientException
 import play.api.Configuration
 import com.amazonaws.services.s3.model.{ObjectMetadata, AmazonS3Exception, S3Object}
+import java.io.{File, InputStream}
 
 class AmazonSpec extends Specification with Mockito {
 
@@ -99,4 +99,43 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.getStream("") mustEqual None
 		}
 	}
+	
+	"Amazon store process" should  {
+
+		"store not-existen file" in {
+			val hash = "superhash54000.png"
+			val f1 = Amazon.tryToHash
+			val file = mock[File]
+			val client = mock[S3]
+			client.getObjectMetadata(Amazon.bucket, hash) returns null
+
+			Amazon.tryToHash = (f:File) => hash
+
+			Amazon.client = Some(client)
+			Amazon store file must_== hash
+
+			Amazon.tryToHash = f1
+			there was one(client).putObject (Amazon.bucket,hash,file)
+		}
+
+		"dont store an existen file" in {
+			val hash = "nohash.png"
+			val f1 = Amazon.tryToHash
+			val file = mock[File]
+			val client = mock[S3]
+			client.getObjectMetadata(Amazon.bucket, hash) returns mock[ObjectMetadata]
+
+			Amazon.tryToHash = (f:File) => hash
+
+			Amazon.client = Some(client)
+			Amazon store file must_== hash
+
+			Amazon.tryToHash = f1
+			there was no(client).putObject (Amazon.bucket,hash,file)
+		}
+
+
+	}
+
+	def mockTwice = Tuple2(mock[Option[S3]],mock[S3])
 }

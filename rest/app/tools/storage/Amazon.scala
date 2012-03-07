@@ -14,7 +14,8 @@ object Amazon extends Storage {
 	private[storage] var bucket = ""
 	private[storage] var prefix = ""
 	private[storage] var client : Option[S3] = None
-	
+	private[storage] var tryToHash = (f:File) => hash(f, prefix).concat(".png")
+
 	def configure (c: Configuration) : Storage = {
 
 		if (client.isDefined) return this
@@ -47,7 +48,7 @@ object Amazon extends Storage {
 	}
 
 	def store (file: File) : String = {
-		val key = hash(file, prefix).concat(".png")
+		val key = tryToHash (file)
 
 		if (!(this has key)) {
 			client.get.putObject(bucket, key, file)
