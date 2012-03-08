@@ -46,8 +46,8 @@ object FileSystem extends Storage {
 
 	def has (key: String) : Boolean = new File(combineOutbox(key)).exists()
 
-	def store (file: File) : String = {
-		val key = hash(file, prefix)
+	def store (page : Int,  file: File) : String = {
+		val key = hash(file, page +"_"+ prefix)
 		write (file, key)
 	}
 

@@ -8,10 +8,10 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import org.icepdf.core.util.GraphicsRenderingHints
 import org.icepdf.core.pobjects.{Page, Document}
-import play.api.libs.json.{Json, JsValue}
 import io.Source
 import play.api.libs.Files
 import java.io.{InputStream, ByteArrayInputStream, File}
+import play.api.libs.json.{JsArray, Json, JsValue}
 
 object PdfToPng {
 
@@ -52,15 +52,16 @@ object PdfToPng {
 		val cs = context.conversionScale
 		var l = List.empty[String]
 
-		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
 
+		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
+//		Js
 		Logger debug  "File " + id + " has " + document.getNumberOfPages + " pages"
 		for (i <- 0 to document.getNumberOfPages - 1) {
 			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
 			val tmp = File.createTempFile("grom-",".png")
 
 			toFile (image, tmp)
-			l = context.getStorage.get.store (tmp) :: l
+			l = context.getStorage.get.store (i+1,tmp) :: l
 		}
 
 		Some (putMeta (id, l))

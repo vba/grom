@@ -111,10 +111,10 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon store file must_== hash
+			Amazon.store (1,file) must_== "1-" + hash
 
 			Amazon.tryToHash = f1
-			there was one(client).putObject (Amazon.bucket,hash,file)
+			there was one(client).putObject (Amazon.bucket, "1-" +hash,file)
 		}
 
 		"dont store an existen file" in {
@@ -127,7 +127,7 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon store file must_== hash
+			Amazon.store (1,file) must_== "1-" + hash
 
 			Amazon.tryToHash = f1
 			there was no(client).putObject (Amazon.bucket,hash,file)
