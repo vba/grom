@@ -73,7 +73,7 @@ object Amazon extends Storage {
 	}
 
 	def store (page : Int, file: File) : String = {
-		val key = page +"-"+ tryToHash (file)
+		val key = page +"-amazon-"+ tryToHash (file)
 		store (file, key)
 		key
 	}
