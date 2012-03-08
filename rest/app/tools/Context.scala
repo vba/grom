@@ -1,11 +1,12 @@
 package tools
 
-import extractors.PdfToPng
+import extractors.{Meta, PdfToPng}
 import play.api.{Logger, Configuration}
 import storage.{FileSystem, Amazon, Storage}
 import scala.collection.mutable.{SynchronizedSet, HashSet}
 import collection.immutable.Set
 import play.api.libs.json.JsValue
+import eu.medsea.mimeutil.MimeUtil
 
 
 object Context {
@@ -17,7 +18,7 @@ object Context {
 		"fs" -> Some(FileSystem)
 	)
 
-	val extractors = Set[Option[{def extract (id:String): Option[JsValue]}]] (
+	val extractors = Set[Option[{def extract (id:String): Option[Meta]}]] (
 		Some(PdfToPng)
 	)
 
@@ -25,7 +26,6 @@ object Context {
 	private var config : Option[Configuration] = None
 
 	def configure (conf : Configuration) {
-
 		config = Some (conf)
 
 		val st = conf.getString("storage.type", None).getOrElse(" EMPTY STORAGE TYPE ")

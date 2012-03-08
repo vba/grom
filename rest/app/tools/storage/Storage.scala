@@ -6,9 +6,11 @@ import tools.security.{Sha1DigestInputStream => SDIStream}
 
 trait Storage {
 
-	def getStream (key : String) : Option[InputStream]
+	protected val mimes = Seq ("application/pdf")
+
+	def getStream (key : String, accept : Option[Seq[String]] = None) : Option[InputStream]
 	def store (page: Int, file: File) : String
-	def storeMeta (key:String, file: File)
+	def storeMeta (key:String, content: String)
 	def has (key: String) : Boolean
 	def hash (file: File, prefix: String = "na"): String = {
 
@@ -20,4 +22,8 @@ trait Storage {
 		sha1.close()
 		key
 	}
+
+	def getMimes = mimes
+
+	
 }

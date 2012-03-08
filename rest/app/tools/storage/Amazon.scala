@@ -4,8 +4,8 @@ import play.api.{Logger, Configuration}
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
 import tools.security.Sha1DigestInputStream
-import java.io.{FileInputStream, File, InputStream}
 import com.amazonaws.services.s3.model.{AmazonS3Exception, PutObjectRequest, ObjectMetadata}
+import java.io.{ByteArrayInputStream, FileInputStream, File, InputStream}
 
 object Amazon extends Storage {
 
@@ -37,11 +37,32 @@ object Amazon extends Storage {
 		store(file, key)
 	}
 
-	def getStream (key : String) : Option[InputStream] = {
+	def storeMeta(key: String, content: String) {
+		val meta = new ObjectMetadata
+		val bytes = content.getBytes
+
+		meta setContentEncoding "utf-8"
+		meta setContentType "application/json"
+		meta setContentLength bytes.length
+
+		val is = new ByteArrayInputStream (bytes)
+
+		client.get.putObject (bucket, key, is, meta)
+	}
+
+	def getStream (key : String, accept : Option[Seq[String]] = None) : Option[InputStream] = {
 		if (!client.isDefined) return None;
 
 		try {
-			Some (client.get.getObject (bucket,key).getObjectContent);
+			val amazonEntry = client.get.getObject (bucket,key)
+			val mime = amazonEntry.getObjectMetadata.getContentType
+
+			if (accept.getOrElse(Seq(mime)).contains(mime)) {
+				Some (amazonEntry.getObjectContent)
+			} else {
+				Logger warn mime+ " is not supported by processing"
+				None
+			}
 		} catch {
 			case e:RuntimeException => {
 				Logger.error (e.getMessage, e)

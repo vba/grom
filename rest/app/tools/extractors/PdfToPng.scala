@@ -26,7 +26,8 @@ object PdfToPng {
 			return (false,None)
 		}
 
-		val stream = context.getStorage.get.getStream(id)
+		val storage = context.getStorage.get
+		val stream = storage.getStream (id, Some(storage.getMimes))
 
 		if (!stream.isDefined) {
 			Logger warn "No resource found for ".concat (id).concat (" key") + " , stoping"
@@ -41,7 +42,7 @@ object PdfToPng {
 		(true,stream)
 	}
 
-	def extract (id:String): Option[JsValue] = {
+	def extract (id:String): Option[Meta] = {
 		val (follow, stream) = preExtract(id)
 
 		if (!follow) return None
@@ -51,28 +52,37 @@ object PdfToPng {
 		val pb = Page.BOUNDARY_CROPBOX
 		val cs = context.conversionScale
 		var l = List.empty[String]
-
+		var result: Option[Meta] = None
 
 		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
-//		Js
-		Logger debug  "File " + id + " has " + document.getNumberOfPages + " pages"
-		for (i <- 0 to document.getNumberOfPages - 1) {
+		val pages = document.getNumberOfPages
+
+		Logger debug  "File " + id + " has " + pages + " pages"
+
+		for (i <- 0 to pages - 1) {
 			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
 			val tmp = File.createTempFile("grom-",".png")
+			val status = {if (i == (pages-1)) Meta.Done else Meta.InProgress}
 
 			toFile (image, tmp)
 			l = context.getStorage.get.store (i+1,tmp) :: l
+			result = Some (putMeta (id, Meta (l.reverse, status)))
+			image.flush()
 		}
 
-		Some (putMeta (id, l))
+		stream.get.close()
+		document.dispose()
+
+		Logger debug  "File " + id + " is done"
+		
+		result
 	}
 
-	private def putMeta[T <: String] (key: T ,l: List[T]): JsValue = {
-		val json = Json.toJson [List[String]] (l)
-		val file = File.createTempFile("grom",".json");
-		Files.writeFile (file, json.toString())
-		Logger debug "Store meta to "+ key + metaSuffix
-		Context.getStorage.get.storeMeta (key+metaSuffix, file)
-		json
+	private def putMeta (key: String, m: Meta): Meta = {
+		val json = m.toJson
+		Context.getStorage.get.storeMeta (key+metaSuffix, Json.stringify(json))
+		m
 	}
 }
+
+

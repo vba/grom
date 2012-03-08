@@ -7,9 +7,6 @@ import tools.Context
 import play.api.Configuration
 import java.io.File
 import tools.storage.FileSystem
-import play.api.libs.json.Json
-import controllers.Converter
-import play.api.libs.Files
 
 class PdfToPngSpec extends Specification with Mockito {
 
@@ -44,15 +41,16 @@ class PdfToPngSpec extends Specification with Mockito {
 			val result = PdfToPng.extract("file1.pdf")
 
 			result must_!= None
-			val list = Json.fromJson[List[String]](result.get)
+			val meta = result.get
+			meta must_!= null
 
-			for (l <- list) {
+			for (l <- meta.pages) {
 				val file = new File(l)
 				file.exists must_== true
 				file.length > 0 must_== true
 			}
 
-			list.size > 0 must_== true
+			meta.pages.size > 0 must_== true
 		}
 	}
 }

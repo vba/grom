@@ -3,6 +3,13 @@ package tools.storage
 import java.io.{FileInputStream, InputStream, File}
 import play.api.{Configuration, Logger}
 import play.api.libs.Files
+import io.Source
+import java.net.URL
+import javax.activation.MimetypesFileTypeMap
+import eu.medsea.mimeutil.MimeUtil
+import collection.JavaConversions
+import java.util.ArrayList
+import tools.extractors.PdfToPng
 
 
 object FileSystem extends Storage {
@@ -16,7 +23,7 @@ object FileSystem extends Storage {
 	private var outbox: Option[File] = None
 
 	def configure (c: Configuration) : Storage = {
-
+		MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
 		val f1 : (String) => Option[File] = (k: String) => {
 			val dir = new File (c.getString(k, None) getOrElse "~/Temp/".concat(k.replace("fs.","")))
 			if (!dir.exists()) {
@@ -32,13 +39,24 @@ object FileSystem extends Storage {
 		this
 	}
 
-	def storeMeta(key: String, file: File) {
-		write (file, key, "")
+	def storeMeta(key: String, content: String) {
+		val out = new File (combineOutbox(key))
+		if (out.exists()) out.delete()
+		Files.writeFile (out, content)
 	}
 
-	def getStream (key: String) : Option[InputStream] = {
+	def getStream (key: String, accept : Option[Seq[String]] = None) : Option[InputStream] = {
 		try {
-			Some(new FileInputStream(combineInbox (key)))
+			val path = {if (key.endsWith(PdfToPng.metaSuffix)) combineOutbox (key) else combineInbox (key)}
+			val file = new File (path)
+			val mime = new ArrayList(MimeUtil.getMimeTypes(file)).get(0).toString
+
+			if (accept.getOrElse(Seq(mime)).contains(mime)) {
+				Some (new FileInputStream(file))
+			} else {
+				Logger warn mime+ " is not supported by processing"
+				None
+			}
 		} catch {
 			case e:Throwable => Logger.error(e.getMessage, e); None
 		}
@@ -47,7 +65,7 @@ object FileSystem extends Storage {
 	def has (key: String) : Boolean = new File(combineOutbox(key)).exists()
 
 	def store (page : Int,  file: File) : String = {
-		val key = hash(file, page +"_"+ prefix)
+		val key = hash(file, page +"-"+ prefix)
 		write (file, key)
 	}
 
