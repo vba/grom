@@ -3,9 +3,8 @@ package tools.storage
 import play.api.{Logger, Configuration}
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
-import tools.security.Sha1DigestInputStream
-import com.amazonaws.services.s3.model.{AmazonS3Exception, PutObjectRequest, ObjectMetadata}
-import java.io.{ByteArrayInputStream, FileInputStream, File, InputStream}
+import com.amazonaws.services.s3.model.{AmazonS3Exception, ObjectMetadata}
+import java.io.{ByteArrayInputStream, File, InputStream}
 
 object Amazon extends Storage {
 
@@ -55,10 +54,16 @@ object Amazon extends Storage {
 
 		try {
 			val amazonEntry = client.get.getObject (bucket,key)
-			val mime = amazonEntry.getObjectMetadata.getContentType
+			val is = amazonEntry.getObjectContent
+//			val mime = amazonEntry.getObjectMetadata.getContentType
+			// TODO make this processing before uploading to amazon
+//			val mime = new ArrayList(MimeUtil.getMimeTypes(is)).get(0).toString
+			val mime = MimeSupplier supply is
 
-			if (accept.getOrElse(Seq(mime)).contains(mime)) {
-				Some (amazonEntry.getObjectContent)
+			if (!mime.isDefined) return None
+			
+			if (accept.getOrElse(Seq(mime.get)).contains(mime.get)) {
+				Some (is)
 			} else {
 				Logger warn mime+ " is not supported by processing"
 				None

@@ -49,9 +49,11 @@ object FileSystem extends Storage {
 		try {
 			val path = {if (key.endsWith(PdfToPng.metaSuffix)) combineOutbox (key) else combineInbox (key)}
 			val file = new File (path)
-			val mime = new ArrayList(MimeUtil.getMimeTypes(file)).get(0).toString
+			val mime = (MimeSupplier supply file)
 
-			if (accept.getOrElse(Seq(mime)).contains(mime)) {
+			if (!mime.isDefined) return None
+
+			if (accept.getOrElse(Seq(mime.get)).contains(mime.get)) {
 				Some (new FileInputStream(file))
 			} else {
 				Logger warn mime+ " is not supported by processing"

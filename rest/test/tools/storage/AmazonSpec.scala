@@ -78,19 +78,18 @@ class AmazonSpec extends Specification with Mockito {
 		"work correctly with simple mocking" in {
 			val client = mock[S3]
 			val obj = mock[S3Object]
-			val meta = mock[ObjectMetadata]
 			val is = mock[InputStream]
 			val (key1, bucket1) = Tuple2("key1","bucket1")
 
 			Amazon.bucket = bucket1
 			client.getObject(bucket1, key1) returns obj
-			obj.getObjectMetadata returns meta
 			obj.getObjectContent returns is
-			meta.getContentType returns "application/pdf"
+			MimeSupplier.byInputStream = (is:InputStream) => Some("application/pdf")
 
 			Amazon.client = Some(client)
-
 			Amazon.getStream(key1, None) mustEqual Some(is)
+
+			MimeSupplier.restoreDelegates()
 		}
 		"process amazon exception correctly" in {
 			val client = mock[S3]
@@ -115,10 +114,10 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (1,file) must_== "1-" + hash
+			Amazon.store (1,file) must_== "1-amazon-" + hash
 
 			Amazon.tryToHash = f1
-			there was one(client).putObject (Amazon.bucket, "1-" +hash,file)
+			there was one(client).putObject (Amazon.bucket, "1-amazon-" +hash,file)
 		}
 
 		"dont store an existen file" in {
@@ -131,7 +130,7 @@ class AmazonSpec extends Specification with Mockito {
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (1,file) must_== "1-" + hash
+			Amazon.store (1,file) must_== "1-amazon-" + hash
 
 			Amazon.tryToHash = f1
 			there was no(client).putObject (Amazon.bucket,hash,file)
