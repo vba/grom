@@ -54,20 +54,24 @@ object PdfToPng {
 		var l = List.empty[String]
 		var result: Option[Meta] = None
 
-		document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
-		val pages = document.getNumberOfPages
-
-		Logger debug  "File " + id + " has " + pages + " pages"
-
-		for (i <- 0 to pages - 1) {
-			val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
-			val tmp = File.createTempFile("grom-",".png")
-			val status = {if (i == (pages-1)) Meta.Done else Meta.InProgress}
-
-			toFile (image, tmp)
-			l = context.getStorage.get.store (i+1,tmp) :: l
-			result = Some (putMeta (id, Meta (l.reverse, status)))
-			image.flush()
+		try {
+			document.setInputStream (stream.get, File.createTempFile("grom","grom").getCanonicalPath)
+			val pages = document.getNumberOfPages
+		
+			Logger debug  "File " + id + " has " + pages + " pages"
+		
+			for (i <- 0 to pages - 1) {
+				val image = document.getPageImage (i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
+				val tmp = File.createTempFile("grom-",".png")
+				val status = {if (i == (pages-1)) Meta.Done else Meta.InProgress}
+		
+				toFile (image, tmp)
+				l = context.getStorage.get.store (i+1,tmp) :: l
+				result = Some (putMeta (id, Meta (l.reverse, status)))
+				image.flush()
+			} 
+		} catch {
+			case e: Throwable => Logger.error ("Stopping processing " + e.getMessage, e)
 		}
 
 		stream.get.close()

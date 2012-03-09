@@ -78,18 +78,19 @@ class AmazonSpec extends Specification with Mockito {
 		"work correctly with simple mocking" in {
 			val client = mock[S3]
 			val obj = mock[S3Object]
+			val meta = mock[ObjectMetadata]
 			val is = mock[InputStream]
 			val (key1, bucket1) = Tuple2("key1","bucket1")
 
 			Amazon.bucket = bucket1
 			client.getObject(bucket1, key1) returns obj
+			obj.getObjectMetadata returns meta
 			obj.getObjectContent returns is
-			MimeSupplier.byInputStream = (is:InputStream) => Some("application/pdf")
+			meta.getContentType returns "application/pdf"
 
 			Amazon.client = Some(client)
-			Amazon.getStream(key1, None) mustEqual Some(is)
 
-			MimeSupplier.restoreDelegates()
+			Amazon.getStream(key1, None) mustEqual Some(is)
 		}
 		"process amazon exception correctly" in {
 			val client = mock[S3]
