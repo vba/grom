@@ -16,8 +16,8 @@ import play.api.libs.json.{JsArray, Json, JsValue}
 object PdfToPng {
 
 	val metaSuffix = "-meta.json"
-	private[extractors] var makeDocument = new Document
 	private[extractors] var context = Context
+	private[extractors] var makeDocument: () => Document = () => new Document
 	private[extractors] var toFile = (i:BufferedImage, f:File) => ImageIO.write (i, "png", f)
 
 	private def preExtract (id: String) : (Boolean, Option[InputStream]) = {
@@ -47,7 +47,7 @@ object PdfToPng {
 
 		if (!follow) return None
 
-		val document = makeDocument
+		val document = makeDocument()
 		val rh = GraphicsRenderingHints.SCREEN
 		val pb = Page.BOUNDARY_CROPBOX
 		val cs = context.conversionScale
