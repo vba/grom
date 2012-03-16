@@ -64,7 +64,7 @@ object PdfToPng {
 				val status = {if (i == (pages-1)) Meta.Done else Meta.InProgress}
 		
 				toFile (image, tmp)
-				val key = context.getStorage.get.store (tmp, Map("parentId" -> id))
+				val key = context.getStorage.get.store (tmp, id)
 				l = Png (i+1, key, "") :: l
 				result = Some (putMeta (id, Meta (l.reverse, status)))
 				image.flush()

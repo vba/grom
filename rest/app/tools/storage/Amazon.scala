@@ -76,7 +76,7 @@ object Amazon extends Storage {
 		}
 	}
 
-	def store[T >: String] (file: File, ai: Map[T, T] = Map.empty[T, T]): T = {
+	def store[T >: String] (file: File, parent:T) : T = {
 		if (!file.exists()) return ""
 
 		val key = "grom-" + tryToHash (file)
@@ -85,39 +85,61 @@ object Amazon extends Storage {
 		omd.setContentLength(file.length())
 		omd.setContentType("image/png")
 
-		if (ai.isEmpty)
-			omd.setUserMetadata (ai.asInstanceOf[Map[String, String]])
-
-		store (file, omd, key)
+		store (file, omd, key, parent.toString)
 
 		key
 	}
 
-//	def store (page : Int, file: File) : String = {
-//		val key = page +"-amazon-"+ tryToHash (file)
-//		store (file, key)
-//		key
-//	}
-	
 	def has (key: String) : Boolean = {
-		if (!client.isDefined) return false
+		getMetaObject(key).isDefined
+	}
+	
+	def getParents (key: String) : Option[String] = {
 
-		try { client.get.getObjectMetadata (bucket, key) != null }
-		catch {
-			case e: AmazonS3Exception => Logger.warn ("Key " + key + " : " + e.getMessage); return false
-			case e: Throwable => Logger.error (e.getMessage, e); return false
+		val o = getMetaObject(key);
+		if (o.isDefined) {
+			Some (o.get.getUserMetadata.getOrElse("parents",""))
+		}
+		else {
+			None
 		}
 	}
+	
+	private def getMetaObject (key: String) : Option[ObjectMetadata] = {
+		if (!client.isDefined) return None
 
-	private def store (file: File, omd: ObjectMetadata, key: => String ) {
-		if (this has key) return
+		try {
+			val omd = client.get.getObjectMetadata (bucket, key)
+			if (omd == null) return None
+			else return Some (omd)
+		}
+		catch {
+			case e: AmazonS3Exception => Logger.warn ("Key " + key + " : " + e.getMessage)
+			case e: Throwable => Logger.error (e.getMessage, e)
+		}
+		None
+
+	}
+
+	private def store (file: File, omd: ObjectMetadata, key: => String, parent: String) {
+
+		val parents = this getParents key
+		
+		if (parents.isDefined && !parents.get.contains (parent) ) {
+			omd.setUserMetadata (Map("parents" -> (parents.get+"|"+parent)))
+//			client.get.deleteObject(bucket,key);
+		}
+		else if (parents.isDefined) {
+			return
+		}
+		else {
+			omd.setUserMetadata (Map("parents" -> parent))
+		}
 
 		val is = new FileInputStream (file)
 		client.get.putObject (bucket, key, is, omd)
 		Logger debug key.concat(" is sent to amazon")
 		is.close()
-
-		return
 	}
 
 	def getAccess = access

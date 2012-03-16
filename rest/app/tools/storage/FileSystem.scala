@@ -62,7 +62,7 @@ object FileSystem extends Storage {
 
 	def has (key: String) : Boolean = new File(combineOutbox(key)).exists()
 
-	def store[T >: String] (file: File, ai: Map[T, T] = Map.empty[T, T]): T = {
+	def store[T >: String] (file: File, parent:T): T = {
 		val key = hash (file, prefix)
 		write (file, key)
 	}

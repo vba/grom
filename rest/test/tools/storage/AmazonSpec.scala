@@ -115,7 +115,7 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (file) must_== "grom-" + hash
+			Amazon.store (file, "") must_== "grom-" + hash
 
 			Amazon.tryToHash = f1
 			there was one(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
@@ -131,7 +131,7 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store  (file) must_== ""
+			Amazon.store  (file, "") must_== ""
 
 			Amazon.tryToHash = f1
 			there was no(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
