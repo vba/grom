@@ -3,13 +3,9 @@ package tools.storage
 import java.io.{FileInputStream, InputStream, File}
 import play.api.{Configuration, Logger}
 import play.api.libs.Files
-import io.Source
-import java.net.URL
-import javax.activation.MimetypesFileTypeMap
 import eu.medsea.mimeutil.MimeUtil
-import collection.JavaConversions
-import java.util.ArrayList
 import tools.extractors.PdfToPng
+import collection.{Map, Seq}
 
 
 object FileSystem extends Storage {
@@ -66,8 +62,8 @@ object FileSystem extends Storage {
 
 	def has (key: String) : Boolean = new File(combineOutbox(key)).exists()
 
-	def store (page : Int,  file: File) : String = {
-		val key = hash(file, page +"-"+ prefix)
+	def store[T >: String] (file: File, ai: Map[T, T] = Map.empty[T, T]): T = {
+		val key = hash (file, prefix)
 		write (file, key)
 	}
 

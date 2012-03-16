@@ -3,6 +3,7 @@ package tools.storage
 import tools.security.{Sha1DigestInputStream => SDIStream}
 import java.io.{FileOutputStream, FileInputStream, File, InputStream}
 import play.api.Logger
+import collection.Map
 
 
 trait Storage {
@@ -10,7 +11,7 @@ trait Storage {
 	protected val mimes = Seq ("application/pdf","application/octet-stream")
 
 	def getStream (key : String, accept : Option[Seq[String]] = None) : Option[InputStream]
-	def store (page: Int, file: File) : String
+	def store[T >: String] (file: File, ai: Map[T,T] = Map.empty[T, T]) : T
 	def storeMeta (key:String, content: String)
 	def has (key: String) : Boolean
 	def hash (file: File, prefix: String = "na"): String = {

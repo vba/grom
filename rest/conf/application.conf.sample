@@ -56,3 +56,4 @@ fs.inbox=/tmp/inbox
 fs.outbox=/tmp/outbox
 
 conversion.scale=2.5
+conversion.preview_scale=0.3

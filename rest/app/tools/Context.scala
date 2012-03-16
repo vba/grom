@@ -1,6 +1,7 @@
 package tools
 
-import extractors.{Meta, PdfToPng}
+import dto.Meta
+import extractors.{PdfToPng}
 import play.api.{Logger, Configuration}
 import storage.{FileSystem, Amazon, Storage}
 import scala.collection.mutable.{SynchronizedSet, HashSet}
@@ -55,6 +56,7 @@ object Context {
 		config.get.getString ("conversion.".concat(k), None).getOrElse(df).asInstanceOf[T]
 	}
 	def conversionScale = getConfig[String]("scale","2.5").toFloat
+	def previewScale = getConfig[String]("preview_scale","0.3").toFloat
 	def getStorage = storage
 	def getConfig = config
 }

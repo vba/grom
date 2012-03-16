@@ -9,7 +9,7 @@ import play.api.Configuration
 import com.amazonaws.services.s3.model.{ObjectMetadata, AmazonS3Exception, S3Object}
 import java.io.{File, InputStream}
 
-class AmazonSpec extends Specification with Mockito {
+class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito {
 
 	"Amazon configuration" should {
 		"configure client only if it's not defined" in {
@@ -108,33 +108,33 @@ class AmazonSpec extends Specification with Mockito {
 		"store not-existen file" in {
 			val hash = "superhash54000.png"
 			val f1 = Amazon.tryToHash
-			val file = mock[File]
+			val file = File.createTempFile ("tme", "tmp");
 			val client = mock[S3]
 			client.getObjectMetadata(Amazon.bucket, hash) returns null
 
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (1,file) must_== "1-amazon-" + hash
+			Amazon.store (file) must_== "grom-" + hash
 
 			Amazon.tryToHash = f1
-			there was one(client).putObject (Amazon.bucket, "1-amazon-" +hash,file)
+			there was one(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
 		}
 
 		"dont store an existen file" in {
 			val hash = "nohash.png"
 			val f1 = Amazon.tryToHash
-			val file = mock[File]
+			val file = new File (File.createTempFile ("tme", "tmp").getCanonicalPath+".png");
 			val client = mock[S3]
 			client.getObjectMetadata(Amazon.bucket, hash) returns mock[ObjectMetadata]
 
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (1,file) must_== "1-amazon-" + hash
+			Amazon.store  (file) must_== ""
 
 			Amazon.tryToHash = f1
-			there was no(client).putObject (Amazon.bucket,hash,file)
+			there was no(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
 		}
 
 

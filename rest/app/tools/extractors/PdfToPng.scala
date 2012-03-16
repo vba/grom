@@ -1,17 +1,15 @@
 package tools.extractors
 
-import play.api.{Logger, Configuration}
-import tools.storage.{FileSystem, Amazon, Storage}
-import scala.collection.mutable.{Set, SynchronizedSet, HashSet}
+import play.api.Logger
 import tools.Context
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import org.icepdf.core.util.GraphicsRenderingHints
 import org.icepdf.core.pobjects.{Page, Document}
-import io.Source
-import play.api.libs.Files
-import java.io.{InputStream, ByteArrayInputStream, File}
-import play.api.libs.json.{JsArray, Json, JsValue}
+import java.io.{InputStream, File}
+import play.api.libs.json.Json
+import tools.dto.{Png, Meta}
+import collection.immutable.{Map, List}
 
 object PdfToPng {
 
@@ -51,7 +49,7 @@ object PdfToPng {
 		val rh = GraphicsRenderingHints.SCREEN
 		val pb = Page.BOUNDARY_CROPBOX
 		val cs = context.conversionScale
-		var l = List.empty[String]
+		var l = List.empty[Png]
 		var result: Option[Meta] = None
 
 		try {
@@ -66,7 +64,8 @@ object PdfToPng {
 				val status = {if (i == (pages-1)) Meta.Done else Meta.InProgress}
 		
 				toFile (image, tmp)
-				l = context.getStorage.get.store (i+1,tmp) :: l
+				val key = context.getStorage.get.store (tmp, Map("parentId" -> id))
+				l = Png (i+1, key, "") :: l
 				result = Some (putMeta (id, Meta (l.reverse, status)))
 				image.flush()
 			} 

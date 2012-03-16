@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
 import com.amazonaws.services.s3.model.{AmazonS3Exception, ObjectMetadata}
 import java.io._
+import scala.collection.JavaConversions._
+import collection.{Seq, Map, JavaConversions}
 
 
 object Amazon extends Storage {
@@ -34,7 +36,7 @@ object Amazon extends Storage {
 	}
 
 	def storeMeta(key: String, file: File) {
-		store(file, key)
+		//store(file, key)
 	}
 
 	def storeMeta(key: String, content: String) {
@@ -48,6 +50,8 @@ object Amazon extends Storage {
 		val is = new ByteArrayInputStream (bytes)
 
 		client.get.putObject (bucket, key, is, meta)
+		
+		is.close()
 	}
 
 	def getStream (key : String, accept : Option[Seq[String]] = None) : Option[InputStream] = {
@@ -72,11 +76,28 @@ object Amazon extends Storage {
 		}
 	}
 
-	def store (page : Int, file: File) : String = {
-		val key = page +"-amazon-"+ tryToHash (file)
-		store (file, key)
+	def store[T >: String] (file: File, ai: Map[T, T] = Map.empty[T, T]): T = {
+		if (!file.exists()) return ""
+
+		val key = "grom-" + tryToHash (file)
+		val omd = new ObjectMetadata
+
+		omd.setContentLength(file.length())
+		omd.setContentType("image/png")
+
+		if (ai.isEmpty)
+			omd.setUserMetadata (ai.asInstanceOf[Map[String, String]])
+
+		store (file, omd, key)
+
 		key
 	}
+
+//	def store (page : Int, file: File) : String = {
+//		val key = page +"-amazon-"+ tryToHash (file)
+//		store (file, key)
+//		key
+//	}
 	
 	def has (key: String) : Boolean = {
 		if (!client.isDefined) return false
@@ -88,10 +109,14 @@ object Amazon extends Storage {
 		}
 	}
 
-	private def store (file: File, key: => String ) {
+	private def store (file: File, omd: ObjectMetadata, key: => String ) {
 		if (this has key) return
-		client.get.putObject(bucket, key, file)
-		Logger.debug(key.concat(" is sent to amazon"))
+
+		val is = new FileInputStream (file)
+		client.get.putObject (bucket, key, is, omd)
+		Logger debug key.concat(" is sent to amazon")
+		is.close()
+
 		return
 	}
 

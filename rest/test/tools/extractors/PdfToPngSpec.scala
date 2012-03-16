@@ -7,8 +7,10 @@ import tools.Context
 import play.api.Configuration
 import java.io.File
 import tools.storage.FileSystem
+//import org.junit.runner.RunWith
 
-class PdfToPngSpec extends Specification with Mockito {
+//@RunWith(classOf[JUnitSuiteRunner])
+class PdfToPngSpec extends SpecificationWithJUnit with Specification with Mockito {
 
 	val base = new File(".").getCanonicalPath
 	
@@ -44,8 +46,8 @@ class PdfToPngSpec extends Specification with Mockito {
 			val meta = result.get
 			meta must_!= null
 
-			for (l <- meta.pages) {
-				val file = new File(l)
+			for (p <- meta.pages) {
+				val file = new File(p.key)
 				file.exists must_== true
 				file.length > 0 must_== true
 			}
