@@ -3,11 +3,13 @@ package tools.storage
 import org.specs2.mutable._
 import org.mockito.Matchers._
 import org.specs2.mock._
+import scala.collection.JavaConversions._
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.AmazonClientException
 import play.api.Configuration
 import com.amazonaws.services.s3.model.{ObjectMetadata, AmazonS3Exception, S3Object}
-import java.io.{File, InputStream}
+import java.io.{ByteArrayInputStream, FileInputStream, File, InputStream}
+
 
 class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito {
 
@@ -105,10 +107,34 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 	
 	"Amazon store process" should  {
 
+		"store meta file correctly" in {
+			val f1 = Amazon.newByteInputStream
+			val f2 = Amazon.newMeta
+			val is = mock[ByteArrayInputStream]
+			val meta1 = mock[ObjectMetadata]
+			val client = mock[S3]
+			val key = "my key"
+			val text = "Bèjôür"
+
+			Amazon.newMeta = () => meta1
+			Amazon.newByteInputStream = (ba:Array[Byte]) => { text.getBytes("utf8") must_== ba; is }
+			Amazon.client = Some (client)
+
+			Amazon.storeMeta (key, text)
+
+			there was one (meta1).setContentEncoding("utf-8")
+			there was one (meta1).setContentType("application/json")
+			there was one (meta1).setContentLength(text.getBytes("utf8").length)
+			there was one (client).putObject (Amazon.bucket, key, is, meta1)
+
+			Amazon.newByteInputStream = f1
+			Amazon.newMeta = f2
+		}
+
 		"store not-existen file" in {
 			val hash = "superhash54000.png"
 			val f1 = Amazon.tryToHash
-			val file = File.createTempFile ("tme", "tmp");
+			val file = File.createTempFile ("tme", "tmp")
 			val client = mock[S3]
 			client.getObjectMetadata(Amazon.bucket, hash) returns null
 
@@ -119,6 +145,44 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 
 			Amazon.tryToHash = f1
 			there was one(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
+		}
+
+		"modify an existen file" in {
+			val hash = "superhash54000.png"
+			val f1 = Amazon.tryToHash
+			val f2 = Amazon.newMeta
+			val f3 = Amazon.newFileInputStream
+			val file = File.createTempFile ("tme", "tmp")
+			val is = mock[FileInputStream]
+			val client = mock[S3]
+			val meta1 = mock[ObjectMetadata]
+			val meta2 = mock[ObjectMetadata]
+
+			meta1.getUserMetadata returns Map ("parents"->"1|2|3")
+			client.getObjectMetadata(Amazon.bucket, "grom-" + hash) returns meta1
+			
+			Amazon.tryToHash = (f:File) => hash
+			Amazon.newFileInputStream = (f:File) => is
+			Amazon.newMeta = () => meta2
+			Amazon.client = Some(client)
+
+			Amazon.store  (file, "3") must_== "grom-" + hash
+
+			there was one (client).getObjectMetadata (Amazon.bucket, "grom-" + hash)
+			there was one (meta1).getUserMetadata
+			there was no (meta2).setUserMetadata (any[java.util.Map[String,String]])
+			there was no (client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
+
+			Amazon.store  (file, "4") must_== "grom-" + hash
+
+			there was two (client).getObjectMetadata (Amazon.bucket, "grom-" + hash)
+			there was two (meta1).getUserMetadata
+			there was one (meta2).setUserMetadata (Map("parents" -> "1|2|3|4"))
+			there was one (client).putObject (Amazon.bucket, "grom-" + hash, is, meta2)
+
+			Amazon.newFileInputStream = f3
+			Amazon.tryToHash = f1
+			Amazon.newMeta = f2
 		}
 
 		"dont store an existen file" in {

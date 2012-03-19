@@ -17,6 +17,9 @@ object Amazon extends Storage {
 	private[storage] var prefix = ""
 	private[storage] var client : Option[S3] = None
 	private[storage] var tryToHash = (f:File) => hash(f, prefix).concat(".png")
+	private[storage] var newMeta = () => new ObjectMetadata
+	private[storage] var newFileInputStream = (f:File) => new FileInputStream(f)
+	private[storage] var newByteInputStream = (ba:Array[Byte]) => new ByteArrayInputStream(ba)
 
 	def configure (c: Configuration) : Storage = {
 
@@ -35,19 +38,15 @@ object Amazon extends Storage {
 		this
 	}
 
-	def storeMeta(key: String, file: File) {
-		//store(file, key)
-	}
-
 	def storeMeta(key: String, content: String) {
-		val meta = new ObjectMetadata
-		val bytes = content.getBytes
+		val meta = newMeta()
+		val bytes = content getBytes "utf-8"
 
 		meta setContentEncoding "utf-8"
 		meta setContentType "application/json"
 		meta setContentLength bytes.length
 
-		val is = new ByteArrayInputStream (bytes)
+		val is = newByteInputStream (bytes)
 
 		client.get.putObject (bucket, key, is, meta)
 		
@@ -80,7 +79,7 @@ object Amazon extends Storage {
 		if (!file.exists()) return ""
 
 		val key = "grom-" + tryToHash (file)
-		val omd = new ObjectMetadata
+		val omd = newMeta()
 
 		omd.setContentLength(file.length())
 		omd.setContentType("image/png")
@@ -127,7 +126,6 @@ object Amazon extends Storage {
 		
 		if (parents.isDefined && !parents.get.contains (parent) ) {
 			omd.setUserMetadata (Map("parents" -> (parents.get+"|"+parent)))
-//			client.get.deleteObject(bucket,key);
 		}
 		else if (parents.isDefined) {
 			return
@@ -136,7 +134,7 @@ object Amazon extends Storage {
 			omd.setUserMetadata (Map("parents" -> parent))
 		}
 
-		val is = new FileInputStream (file)
+		val is = newFileInputStream (file)
 		client.get.putObject (bucket, key, is, omd)
 		Logger debug key.concat(" is sent to amazon")
 		is.close()
