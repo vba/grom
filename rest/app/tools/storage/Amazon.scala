@@ -122,17 +122,19 @@ object Amazon extends Storage {
 
 	private def store (file: File, omd: ObjectMetadata, key: => String, parent: String) {
 
-		val parents = this getParents key
-		
-		if (parents.isDefined && !parents.get.contains (parent) ) {
-			omd.setUserMetadata (Map("parents" -> (parents.get+"|"+parent)))
-		}
-		else if (parents.isDefined) {
-			return
-		}
-		else {
-			omd.setUserMetadata (Map("parents" -> parent))
-		}
+		if (this has key) return
+
+//		val parents = this getParents key
+//
+//		if (parents.isDefined && !parents.get.contains (parent) ) {
+//			omd.setUserMetadata (Map("parents" -> (parents.get+"|"+parent)))
+//		}
+//		else if (parents.isDefined) {
+//			return
+//		}
+//		else {
+//			omd.setUserMetadata (Map("parents" -> parent))
+//		}
 
 		val is = newFileInputStream (file)
 		client.get.putObject (bucket, key, is, omd)
