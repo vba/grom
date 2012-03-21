@@ -1,6 +1,6 @@
 package tools
 
-import dto.Meta
+import dto.{Key, Meta}
 import extractors.{PdfToPng}
 import play.api.{Logger, Configuration}
 import storage.{FileSystem, Amazon, Storage}
@@ -8,19 +8,19 @@ import scala.collection.mutable.{SynchronizedSet, HashSet}
 import collection.immutable.Set
 import play.api.libs.json.JsValue
 import eu.medsea.mimeutil.MimeUtil
-
+import play.api.Play.current
+import play.api.{Play, Logger}
 
 object Context {
 
-	val keysToProcess = new HashSet[String] with SynchronizedSet[String]
+	val keysToProcess = new HashSet[Key] with SynchronizedSet[Key]
+	var isProd = () => Play.isProd
+	var isDev = () => Play.isDev
+	var isTest = () => Play.isTest
 
 	private val storageProviders = Map[String,Option[{def configure(c: Configuration): Storage}]] (
 		"amazon" -> Some(Amazon),
 		"fs" -> Some(FileSystem)
-	)
-
-	val extractors = Set[Option[{def extract (id:String): Option[Meta]}]] (
-		Some(PdfToPng)
 	)
 
 	private var storage: Option[Storage] = None
@@ -47,8 +47,8 @@ object Context {
 		Context.keysToProcess.remove(key)
 		Logger debug  "Process "+key
 		
-		for (extractor <- Context.extractors if extractor.isDefined) {
-			extractor.get.extract(key)
+		if (key.extractor.isDefined) {
+			key.extractor.get.extract(key.id)
 		}
 	}
 

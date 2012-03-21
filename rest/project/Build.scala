@@ -11,7 +11,8 @@ object ApplicationBuild extends Build {
 		"com.amazonaws" % "aws-java-sdk" % "1.0.002",
 		"org.mockito" % "mockito-core" % "1.9.0",
 		"org.specs2" %% "specs2" % "1.8.2" % "test",
-		"eu.medsea.mimeutil" % "mime-util" % "2.1.3"
+		"eu.medsea.mimeutil" % "mime-util" % "2.1.3",
+		"com.artofsolving" % "jodconverter" % "2.2.1"
 	)
 
 

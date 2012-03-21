@@ -2,12 +2,15 @@ package tools.storage
 
 import tools.security.{Sha1DigestInputStream => SDIStream}
 import java.io.{FileOutputStream, FileInputStream, File, InputStream}
-import play.api.Logger
 import collection.Map
+import tools.Context
+import play.api.Play.current
+import play.api.{Play, Logger}
 
 
 trait Storage {
 
+	protected[storage] var context = Context
 	protected val mimes = Seq ("application/pdf","application/octet-stream")
 
 	def getStream (key : String, accept : Option[Seq[String]] = None) : Option[InputStream]
@@ -18,7 +21,8 @@ trait Storage {
 
 		val is = new FileInputStream(file)
 		val sha1 = SDIStream.make(is)
-		val key = prefix.concat("-page-").concat(sha1.getHash)
+
+		val key = if (context.isProd()) sha1.getHash else prefix.concat("-page-").concat(sha1.getHash)
 		
 		is.close()
 		sha1.close()

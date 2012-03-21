@@ -30,6 +30,10 @@ class PdfToPngSpec extends SpecificationWithJUnit with Specification with Mockit
 			PdfToPng.extract("some") must_== None
 		}
 		"extract correctly on local file system" in {
+			Context.isProd = () => false
+			Context.isDev = () => false
+			Context.isTest = () => true
+
 			val conf = mock[Configuration]
 
 			conf.getString("storage.type", None) returns Some("fs")

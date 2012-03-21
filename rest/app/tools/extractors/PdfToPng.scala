@@ -11,37 +11,14 @@ import play.api.libs.json.Json
 import tools.dto.{Png, Meta}
 import collection.immutable.{Map, List}
 
-object PdfToPng {
+object PdfToPng extends Extractable {
 
 	val metaSuffix = "-meta.json"
-	private[extractors] var context = Context
 	private[extractors] var makeDocument: () => Document = () => new Document
 	private[extractors] var toFile = (i:BufferedImage, f:File) => ImageIO.write (i, "png", f)
 
-	private def preExtract (id: String) : (Boolean, Option[InputStream]) = {
-		if (!context.getStorage.isDefined) {
-			Logger warn "No storage defined, stoping"
-			return (false,None)
-		}
-
-		val storage = context.getStorage.get
-		val stream = storage.getStream (id, Some(storage.getMimes))
-
-		if (!stream.isDefined) {
-			Logger warn "No resource found for ".concat (id).concat (" key") + " , stoping"
-			return (false,stream)
-		}
-
-		if (context.getStorage.get has id+metaSuffix) {
-			Logger debug id + " is already processed, stoping"
-			return (false,stream)
-		}
-
-		(true,stream)
-	}
-
-	def extract (id:String): Option[Meta] = {
-		val (follow, stream) = preExtract(id)
+	override def extract (id:String): Option[Meta] = {
+		val (follow, stream) = onBeforeExtract(id, Some(id+metaSuffix))
 
 		if (!follow) return None
 

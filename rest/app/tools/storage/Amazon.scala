@@ -1,13 +1,13 @@
 package tools.storage
 
-import play.api.{Logger, Configuration}
 import com.amazonaws.services.s3.{AmazonS3Client => S3}
 import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
 import com.amazonaws.services.s3.model.{AmazonS3Exception, ObjectMetadata}
 import java.io._
 import scala.collection.JavaConversions._
 import collection.{Seq, Map, JavaConversions}
-
+import play.api.{Play, Logger, Configuration}
+import play.api.Play.current
 
 object Amazon extends Storage {
 
@@ -16,7 +16,7 @@ object Amazon extends Storage {
 	private[storage] var bucket = ""
 	private[storage] var prefix = ""
 	private[storage] var client : Option[S3] = None
-	private[storage] var tryToHash = (f:File) => hash(f, prefix).concat(".png")
+	private[storage] var tryToHash = (f:File) => hash(f, prefix).concat (if(context.isProd()) "" else ".png")
 	private[storage] var newMeta = () => new ObjectMetadata
 	private[storage] var newFileInputStream = (f:File) => new FileInputStream(f)
 	private[storage] var newByteInputStream = (ba:Array[Byte]) => new ByteArrayInputStream(ba)

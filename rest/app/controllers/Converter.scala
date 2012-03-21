@@ -8,11 +8,12 @@ import play.api.libs.json.Json
 import io.Source
 import java.util.Scanner
 import play.api.libs.iteratee.Enumerator
+import tools.dto.PdfKey
 
 object Converter extends Controller {
 
 	def tryExtractPages (id:String) = Action {
-		Context.keysToProcess add id
+		Context.keysToProcess add PdfKey (id)
 		Ok
 	}
 
@@ -22,7 +23,7 @@ object Converter extends Controller {
 		val exists = Context.getStorage.get has key
 
 		if (!exists) {
-			Context.keysToProcess add id
+			Context.keysToProcess add PdfKey (id)
 			NotFound
 		} else {
 			val stream = Context.getStorage.get getStream key
