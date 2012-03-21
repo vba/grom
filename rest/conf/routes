@@ -4,8 +4,8 @@
 
 # Home page
 GET     /                                   controllers.Application.index
-PUT     /convert/pages/:id                  controllers.Converter.tryExtractPages(id: String)
-GET     /convert/pages/:id                  controllers.Converter.getPages(id: String)
+PUT     /convert/pages/:id                  controllers.Converter.tryExtractPages(id: String, mime:String)
+GET     /convert/pages/:id                  controllers.Converter.getPages(id: String, mime:String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)

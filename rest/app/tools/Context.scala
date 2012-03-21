@@ -4,14 +4,21 @@ import dto.{Key, Meta}
 import extractors.{PdfToPng}
 import play.api.{Logger, Configuration}
 import storage.{FileSystem, Amazon, Storage}
-import scala.collection.mutable.{SynchronizedSet, HashSet}
-import collection.immutable.Set
+
 import play.api.libs.json.JsValue
 import eu.medsea.mimeutil.MimeUtil
 import play.api.Play.current
 import play.api.{Play, Logger}
+import collection.mutable.{Set, SynchronizedSet, HashSet}
 
-object Context {
+trait Configurable {
+	def configure (conf : Configuration)
+	def getConfig: Option[Configuration]
+	def getStorage: Option[Storage]
+	def getKeysToProcess: Set[Key]
+}
+
+object Context extends Configurable {
 
 	val keysToProcess = new HashSet[Key] with SynchronizedSet[Key]
 	var isProd = () => Play.isProd
@@ -59,4 +66,5 @@ object Context {
 	def previewScale = getConfig[String]("preview_scale","0.3").toFloat
 	def getStorage = storage
 	def getConfig = config
+	def getKeysToProcess = keysToProcess
 }

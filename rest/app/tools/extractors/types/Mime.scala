@@ -1,10 +1,9 @@
 package tools.extractors.types
 
 object Mime {
-	val pdf = Seq ("application/pdf","application/octet-stream")
+	val pdf = Set ("application/pdf")
 
-	val office = Seq (
-		"application/octet-stream",
+	val office = Set (
 		"application/msword",
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.template",

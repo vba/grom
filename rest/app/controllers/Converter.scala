@@ -2,31 +2,37 @@ package controllers
 
 import play.api.mvc._
 
-import tools.Context
 import tools.extractors.PdfToPng
 import play.api.libs.json.Json
 import io.Source
 import java.util.Scanner
 import play.api.libs.iteratee.Enumerator
-import tools.dto.PdfKey
+import tools.extractors.types.Mime
+import collection.immutable.Set
+import tools.dto.{OfficeKey, PdfKey}
+import play.api.http.Status
+import tools.{Configurable, Context}
 
 object Converter extends Controller {
 
-	def tryExtractPages (id:String) = Action {
-		Context.keysToProcess add PdfKey (id)
-		Ok
+	private[controllers] var context: Configurable = Context
+
+	def tryExtractPages (id:String, mime:String) = Action {
+		extractPages (id, mime)
 	}
 
-	def getPages(id: String) = Action {
+	def getPages(id: String, mime:String) = Action {
+		pages (id, mime)
+	}
 
+	private[controllers] def pages[T <: String](id:T, mime:T): Result = {
 		val key = id+PdfToPng.metaSuffix
-		val exists = Context.getStorage.get has key
+		val exists = context.getStorage.get has key
 
 		if (!exists) {
-			Context.keysToProcess add PdfKey (id)
-			NotFound
+			toStatus (id, mime, NotFound)
 		} else {
-			val stream = Context.getStorage.get getStream key
+			val stream = context.getStorage.get getStream key
 			SimpleResult (
 				header = ResponseHeader(200, Map(CONTENT_TYPE -> "application/json")),
 				body = Enumerator (
@@ -36,4 +42,12 @@ object Converter extends Controller {
 			)
 		}
 	}
+	private[controllers] def toStatus[T <: Status] (id:String, mime:String, success:T = Ok): T = {
+		mime match {
+			case it if Mime.pdf contains mime => context.getKeysToProcess add PdfKey (id); success
+			case it if Mime.office contains mime => context.getKeysToProcess add OfficeKey (id); success
+			case _ => UnsupportedMediaType.asInstanceOf[T]
+		}
+	}
+	private[controllers] def extractPages[T <: String](id:T, mime:T) = toStatus(id,mime)
 }
