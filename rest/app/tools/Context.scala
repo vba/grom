@@ -1,21 +1,23 @@
 package tools
 
-import dto.{Key, Meta}
-import extractors.{PdfToPng}
-import play.api.{Logger, Configuration}
+import dto.Key
+import play.api.Configuration
 import storage.{FileSystem, Amazon, Storage}
 
-import play.api.libs.json.JsValue
-import eu.medsea.mimeutil.MimeUtil
 import play.api.Play.current
 import play.api.{Play, Logger}
 import collection.mutable.{Set, SynchronizedSet, HashSet}
+import org.artofsolving.jodconverter.office.{OfficeConnectionProtocol, DefaultOfficeManagerConfiguration, OfficeManager}
 
 trait Configurable {
 	def configure (conf : Configuration)
 	def getConfig: Option[Configuration]
 	def getStorage: Option[Storage]
+	def getOffice: Option[OfficeManager]
 	def getKeysToProcess: Set[Key]
+	def startOffice ()
+	def stopOffice ()
+	def processKeys ()
 }
 
 object Context extends Configurable {
@@ -29,9 +31,9 @@ object Context extends Configurable {
 		"amazon" -> Some(Amazon),
 		"fs" -> Some(FileSystem)
 	)
-
+	private[tools] var office: Option[OfficeManager] = None
 	private var storage: Option[Storage] = None
-	private var config : Option[Configuration] = None
+	private var config: Option[Configuration] = None
 
 	def configure (conf : Configuration) {
 		config = Some (conf)
@@ -47,6 +49,27 @@ object Context extends Configurable {
 		storage = Some (provider.get configure conf)
 	}
 
+	def startOffice () {
+		Logger debug "Starting office component"
+		val om = new DefaultOfficeManagerConfiguration ()
+			.setOfficeHome (getConfigByKey ("libre_office"))
+			.setConnectionProtocol (OfficeConnectionProtocol.SOCKET)
+			.buildOfficeManager ()
+
+		om.start()
+		office = Some (om)
+	}
+
+	def stopOffice () {
+		if (!office.isDefined) {
+			Logger warn "Office component is not defined nothing to stop"
+			return
+		}
+		
+		Logger debug "Stopping office component"
+		office.get.stop()
+	}
+
 	def processKeys () {
 		if (Context.keysToProcess.size == 0) return
 		
@@ -59,12 +82,14 @@ object Context extends Configurable {
 		}
 	}
 
-	private def getConfig[T] (k:String,df:String="") : T = {
+	private def getConfigByKey[T <: String] (k:T, df:T=""): T = {
 		config.get.getString ("conversion.".concat(k), None).getOrElse(df).asInstanceOf[T]
 	}
-	def conversionScale = getConfig[String]("scale","2.5").toFloat
-	def previewScale = getConfig[String]("preview_scale","0.3").toFloat
+
+	def conversionScale = getConfigByKey("scale","2.5").toFloat
+	def previewScale = getConfigByKey("preview_scale","0.3").toFloat
 	def getStorage = storage
 	def getConfig = config
 	def getKeysToProcess = keysToProcess
+	def getOffice = office
 }

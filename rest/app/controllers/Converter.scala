@@ -2,7 +2,6 @@ package controllers
 
 import play.api.mvc._
 
-import tools.extractors.PdfToPng
 import play.api.libs.json.Json
 import io.Source
 import java.util.Scanner
@@ -12,6 +11,7 @@ import collection.immutable.Set
 import tools.dto.{OfficeKey, PdfKey}
 import play.api.http.Status
 import tools.{Configurable, Context}
+import tools.extractors.{PdfToPng, Extractable}
 
 object Converter extends Controller {
 

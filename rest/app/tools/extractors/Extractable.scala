@@ -1,15 +1,16 @@
 package tools.extractors
 
 import tools.Context
-import java.io.InputStream
 import play.api.Logger
 import tools.dto.Meta
 import collection.mutable.HashSet
 import collection.mutable.SynchronizedSet
+import java.io.{File, InputStream}
 
 trait Extractable {
 
-	val banned = new HashSet[String] with SynchronizedSet[String]
+	val metaSuffix = "-meta.json"
+
 	protected[extractors] var context = Context
 	protected def onBeforeExtract[T <: String] (id: T, meta: Option[T] = None)
 		: (Boolean, Option[InputStream]) = {
@@ -20,7 +21,7 @@ trait Extractable {
 		}
 
 		val storage = context.getStorage.get
-		val stream = storage.getStream (id, Some(storage.getMimes))
+		val stream = storage.getStream (id)
 
 		if (!stream.isDefined) {
 			Logger warn "No resource found for ".concat (id).concat (" key") + " , stoping"
@@ -36,4 +37,5 @@ trait Extractable {
 	}
 
 	def extract (id:String): Option[Meta] = None
+	def tmpFile (suffix: String = "grom") = File.createTempFile("grom", suffix)
 }

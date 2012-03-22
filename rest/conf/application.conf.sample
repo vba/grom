@@ -57,3 +57,4 @@ fs.outbox=/tmp/outbox
 
 conversion.scale=2.5
 conversion.preview_scale=0.3
+conversion.libre_office=/Applications/LibreOffice.app/Contents/

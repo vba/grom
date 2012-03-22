@@ -13,7 +13,6 @@ import collection.immutable.{Map, List}
 
 object PdfToPng extends Extractable {
 
-	val metaSuffix = "-meta.json"
 	private[extractors] var makeDocument: () => Document = () => new Document
 	private[extractors] var toFile = (i:BufferedImage, f:File) => ImageIO.write (i, "png", f)
 
