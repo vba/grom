@@ -28,9 +28,10 @@ object OfficeToPdf extends Extractable {
 			return None
 		}
 
-		PdfToPng.toPdf (id, out)
+		val result = PdfToPng.toPdf (id, out)
+		Logger debug  "File " + id + " is done"
 
-		None
+		result
 	}
 
 	private def toFile (is: InputStream): File = {
