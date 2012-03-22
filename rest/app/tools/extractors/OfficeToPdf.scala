@@ -12,11 +12,12 @@ object OfficeToPdf extends Extractable {
 	private val format = new DocumentFormat ("pdf","pdf","application/pdf")
 
 
-	override def extract(id: String): Option[Meta] = {
-		val (follow, stream) = onBeforeExtract(id, Some(id+metaSuffix))
+	override def extract (id: String): Option[Meta] = {
+
+		val (follow, stream) = onBeforeExtract (id, Some (id+metaSuffix))
 		if (!follow) return None
 
-		val in = toFile(stream.get)
+		val in = this toFile stream.get
 		val out = tmpFile (".pdf")
 		val converter = makeConverter ()
 
@@ -24,8 +25,11 @@ object OfficeToPdf extends Extractable {
 			converter.convert (in, out)
 		} catch {
 			case e:Throwable => Logger.error(e.getMessage, e)
+			return None
 		}
-		println(out.getCanonicalPath)
+
+		PdfToPng.toPdf (id, out)
+
 		None
 	}
 
