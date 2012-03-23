@@ -46,12 +46,11 @@ object PdfToPng extends Extractable {
 			Logger debug "File " + id + " has " + pages + " pages"
 
 			for (i <- 0 to pages - 1) {
-
 				val status = {if (i == (pages - 1)) Meta.Done else Meta.InProgress}
 				val fixAndSend = (scale:Float) => convertAndSend ((document, id, i, scale))
 
 				l = Png(i + 1, fixAndSend (cs), fixAndSend (ps)) :: l
-				result = Some(putMeta(id, Meta(l.reverse, status)))
+				result = Some(putMeta(id, Meta(l.reverse, status, pages)))
 			}
 		} catch {
 			case e: Throwable => Logger.error("Stopping processing " + e.getMessage, e)

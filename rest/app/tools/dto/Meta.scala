@@ -9,11 +9,13 @@ object Meta {
 	val Done = "done"
 }
 
-case class Meta(pages: List[Png], status: String = Meta.InProgress) {
+case class Meta(pages: List[Png], status: String = Meta.InProgress, total: Int = 1) {
 	def toJson: JsValue = {
 		val time = System.currentTimeMillis() / 1000L
 		JsObject {
 			Seq (
+				("total", Json toJson total),
+				("processed", Json toJson pages.size),
 				("pages", pagesToJson),
 				("status", Json toJson status),
 				("time", Json toJson time)

@@ -11,7 +11,8 @@ class MetaSpec extends SpecificationWithJUnit with Specification with Mockito {
 		"work as expected" in {
 			val meta1 = Meta (
 				List ( Png (1, "k1", "pk1"), Png (2, "k2", "pk2")),
-				Meta.InProgress
+				Meta.InProgress,
+				5
 			)
 
 			val json1 = Json parse Json.stringify(meta1.toJson)
@@ -29,11 +30,12 @@ class MetaSpec extends SpecificationWithJUnit with Specification with Mockito {
 			(pages.get(0) \ "previewKey").as[String] must_== "pk1"
 			(pages.get(1) \ "previewKey").as[String] must_== "pk2"
 
-			//Thread.sleep(1000)
-
 			((pages.get(0) \ "time").as[Long] * 1000) < System.currentTimeMillis() must_== true
 			((pages.get(1) \ "time").as[Long] * 1000) < System.currentTimeMillis() must_== true
 			((json1 \ "time").as[Long] * 1000) < System.currentTimeMillis() must_== true
+
+			(json1 \ "total").as[Int] must_== 5
+			(json1 \ "processed").as[Int] must_== 2
 		}
 	}
 }
