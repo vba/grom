@@ -34,9 +34,8 @@ object PdfToPng extends Extractable {
 	private[extractors] def toPdf (id: String, is: InputStream): Option[Meta] = {
 
 		val document = makeDocument()
-		val rh = GraphicsRenderingHints.SCREEN
-		val pb = Page.BOUNDARY_CROPBOX
 		val cs = context.conversionScale
+		val ps = context.previewScale
 		var l = List.empty[Png]
 		var result: Option[Meta] = None
 
@@ -47,15 +46,12 @@ object PdfToPng extends Extractable {
 			Logger debug "File " + id + " has " + pages + " pages"
 
 			for (i <- 0 to pages - 1) {
-				val image = document.getPageImage(i, rh, pb, 0f, cs).asInstanceOf[BufferedImage]
-				val tmp = File.createTempFile("grom-", ".png")
-				val status = {if (i == (pages - 1)) Meta.Done else Meta.InProgress}
 
-				toFile(image, tmp)
-				val key = context.getStorage.get.store(tmp, id)
-				l = Png(i + 1, key, "") :: l
+				val status = {if (i == (pages - 1)) Meta.Done else Meta.InProgress}
+				val fixAndSend = (scale:Float) => convertAndSend ((document, id, i, scale))
+
+				l = Png(i + 1, fixAndSend (cs), fixAndSend (ps)) :: l
 				result = Some(putMeta(id, Meta(l.reverse, status)))
-				image.flush()
 			}
 		} catch {
 			case e: Throwable => Logger.error("Stopping processing " + e.getMessage, e)
@@ -64,6 +60,20 @@ object PdfToPng extends Extractable {
 		is.close()
 		document.dispose()
 		result
+	}
+	
+	private def convertAndSend (tuple:(Document, String, Int, Float)): String = {
+		val (doc, id, page, scale) = tuple
+		val rh = GraphicsRenderingHints.SCREEN
+		val pb = Page.BOUNDARY_CROPBOX
+		val image = doc.getPageImage(page, rh, pb, 0f, scale).asInstanceOf[BufferedImage]
+		val tmp = tmpFile (".png")
+
+		toFile(image, tmp)
+		val key = context.getStorage.get.store(tmp, id)
+		image.flush()
+
+		key
 	}
 
 	private def putMeta (key: String, m: Meta): Meta = {
