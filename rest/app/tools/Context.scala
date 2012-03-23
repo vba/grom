@@ -18,6 +18,8 @@ trait Configurable {
 	def startOffice ()
 	def stopOffice ()
 	def processKeys ()
+	def conversionScale: Float
+	def previewScale: Float
 }
 
 object Context extends Configurable {

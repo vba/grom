@@ -11,7 +11,7 @@ import tools.dto.{Png, Meta}
 import collection.immutable.{Map, List}
 import java.io.{FileInputStream, InputStream, File}
 
-object PdfToPng extends Extractable {
+object PdfToPng extends Extractable with PdfCapable {
 
 	private[extractors] var makeDocument: () => Document = () => new Document
 	private[extractors] var toFile = (i:BufferedImage, f:File) => ImageIO.write (i, "png", f)
@@ -21,17 +21,17 @@ object PdfToPng extends Extractable {
 		val (follow, stream) = onBeforeExtract(id, Some(id+metaSuffix))
 		if (!follow) return None
 
-		val result: Option[Meta] = toPdf(id, stream.get)
+		val result: Option[Meta] = toPng(id, stream.get)
 		Logger debug  "File " + id + " is done"
 		result
 	}
 
-	private[extractors] def toPdf (id: String, file: File): Option[Meta] = {
+	def toPng (id: String, file: File): Option[Meta] = {
 		val is = new FileInputStream(file);
-		toPdf (id, is)
+		toPng (id, is)
 	}
 
-	private[extractors] def toPdf (id: String, is: InputStream): Option[Meta] = {
+	def toPng (id: String, is: InputStream): Option[Meta] = {
 
 		val document = makeDocument()
 		val cs = context.conversionScale

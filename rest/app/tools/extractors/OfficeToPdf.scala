@@ -9,8 +9,7 @@ import play.api.{Logger, Play}
 object OfficeToPdf extends Extractable {
 
 	private [extractors] var makeConverter: () => ODC = () => new ODC (context.getOffice.get)
-	private val format = new DocumentFormat ("pdf","pdf","application/pdf")
-
+	private [extractors] var pdf: PdfCapable = PdfToPng
 
 	override def extract (id: String): Option[Meta] = {
 
@@ -28,7 +27,7 @@ object OfficeToPdf extends Extractable {
 			return None
 		}
 
-		val result = PdfToPng.toPdf (id, out)
+		val result = pdf.toPng (id, out)
 		Logger debug  "File " + id + " is done"
 
 		result

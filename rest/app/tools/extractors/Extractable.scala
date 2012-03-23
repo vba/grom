@@ -1,17 +1,17 @@
 package tools.extractors
 
-import tools.Context
 import play.api.Logger
 import tools.dto.Meta
 import collection.mutable.HashSet
 import collection.mutable.SynchronizedSet
 import java.io.{File, InputStream}
+import tools.{Configurable, Context}
 
 trait Extractable {
 
 	val metaSuffix = "-meta.json"
 
-	protected[extractors] var context = Context
+	protected[extractors] var context: Configurable = Context
 	protected def onBeforeExtract[T <: String] (id: T, meta: Option[T] = None)
 		: (Boolean, Option[InputStream]) = {
 

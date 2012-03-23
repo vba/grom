@@ -7,9 +7,7 @@ import tools.Context
 import play.api.Configuration
 import java.io.File
 import tools.storage.FileSystem
-//import org.junit.runner.RunWith
 
-//@RunWith(classOf[JUnitSuiteRunner])
 class PdfToPngSpec extends SpecificationWithJUnit with Specification with Mockito {
 
 	val base = new File(".").getCanonicalPath
