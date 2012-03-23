@@ -141,7 +141,7 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 			Amazon.tryToHash = (f:File) => hash
 
 			Amazon.client = Some(client)
-			Amazon.store (file, "") must_== "grom-" + hash
+			Amazon.store (file, "") must_== hash
 
 			Amazon.tryToHash = f1
 			there was one(client).putObject (anyString, anyString, any[InputStream], any[ObjectMetadata])
@@ -159,14 +159,14 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 			val meta2 = mock[ObjectMetadata]
 
 			meta1.getUserMetadata returns Map ("parents"->"1|2|3")
-			client.getObjectMetadata(Amazon.bucket, "grom-" + hash) returns meta1
+			client.getObjectMetadata(Amazon.bucket, hash) returns meta1
 
 			Amazon.tryToHash = (f:File) => hash
 			Amazon.newFileInputStream = (f:File) => is
 			Amazon.newMeta = () => meta2
 			Amazon.client = Some(client)
 
-			Amazon.store  (file, "3") must_== "grom-" + hash
+			Amazon.store  (file, "3") must_== hash
 //
 //			there was one (client).getObjectMetadata (Amazon.bucket, "grom-" + hash)
 //			there was one (meta1).getUserMetadata
@@ -180,7 +180,7 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 //			there was one (meta2).setUserMetadata (Map("parents" -> "1|2|3|4"))
 //			there was one (client).putObject (Amazon.bucket, "grom-" + hash, is, meta2)
 
-			there was no (client).putObject (Amazon.bucket, "grom-" + hash, is, meta1)
+			there was no (client).putObject (Amazon.bucket, hash, is, meta1)
 
 			Amazon.newFileInputStream = f3
 			Amazon.tryToHash = f1

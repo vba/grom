@@ -22,7 +22,7 @@ trait Storage {
 		val is = new FileInputStream(file)
 		val sha1 = SDIStream.make(is)
 
-		val key = if (context.isProd()) sha1.getHash else prefix.concat("-page-").concat(sha1.getHash)
+		val key = sha1.getHash
 		
 		is.close()
 		sha1.close()

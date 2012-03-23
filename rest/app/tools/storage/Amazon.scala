@@ -16,7 +16,7 @@ object Amazon extends Storage {
 	private[storage] var bucket = ""
 	private[storage] var prefix = ""
 	private[storage] var client : Option[S3] = None
-	private[storage] var tryToHash = (f:File) => hash(f, prefix).concat (if(context.isProd()) "" else ".png")
+	private[storage] var tryToHash = (f:File) => hash(f, prefix)
 	private[storage] var newMeta = () => new ObjectMetadata
 	private[storage] var newFileInputStream = (f:File) => new FileInputStream(f)
 	private[storage] var newByteInputStream = (ba:Array[Byte]) => new ByteArrayInputStream(ba)
@@ -78,7 +78,7 @@ object Amazon extends Storage {
 	def store[T >: String] (file: File, parent:T) : T = {
 		if (!file.exists()) return ""
 
-		val key = "grom-" + tryToHash (file)
+		val key = tryToHash (file)
 		val omd = newMeta()
 
 		omd.setContentLength(file.length())
