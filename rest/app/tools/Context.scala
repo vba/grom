@@ -24,7 +24,8 @@ trait Configurable {
 
 object Context extends Configurable {
 
-	val keysToProcess = new HashSet[Key] with SynchronizedSet[Key]
+	private[tools] val keysToProcess = new HashSet[Key] with SynchronizedSet[Key]
+	private[tools]  val keysInProcess = new HashSet[Key] with SynchronizedSet[Key]
 	var isProd = () => Play.isProd
 	var isDev = () => Play.isDev
 	var isTest = () => Play.isTest
@@ -73,15 +74,23 @@ object Context extends Configurable {
 	}
 
 	def processKeys () {
-		if (Context.keysToProcess.size == 0) return
+		if (keysToProcess.size == 0) return
 		
-		val key = Context.keysToProcess.head
-		Context.keysToProcess.remove(key)
-		Logger debug  "Process "+key
+		val key = keysToProcess.head
+
+		if (keysInProcess contains key) return
+		else keysInProcess add key
+
+		Logger debug "Process "+key
 		
 		if (key.extractor.isDefined) {
 			key.extractor.get.extract(key.id)
 		}
+
+		keysInProcess remove key
+		keysToProcess remove key
+
+		Logger debug "Ending "+key
 	}
 
 	private def getConfigByKey[T <: String] (k:T, df:T=""): T = {
