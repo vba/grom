@@ -68,11 +68,13 @@ class ConverterSpec extends SpecificationWithJUnit with Specification with Mocki
 			val pages3 = Converter.pages(key2, "application/pdf").asInstanceOf[SimpleResult[String]]
 
 			keys.contains(PdfKey(key2+PdfToPng.metaSuffix))
-			pages3.header.status must_== 404
+			pages3.header.status must_== 200
+			pages3.header.headers.containsValue("application/json") must_== true
 
 			val pages4 = Converter.pages(key2, "application/msword").asInstanceOf[SimpleResult[String]]
 			keys.contains(OfficeKey(key2+PdfToPng.metaSuffix))
-			pages4.header.status must_== 404
+			pages4.header.status must_== 200
+			pages4.header.headers.containsValue("application/json") must_== true
 		}
 	}
 }

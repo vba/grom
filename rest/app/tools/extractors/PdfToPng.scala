@@ -38,10 +38,12 @@ object PdfToPng extends Extractable with PdfCapable {
 		val ps = context.previewScale
 		var l = List.empty[Png]
 		var result: Option[Meta] = None
+		var pages = 0
+		val meta = (st:String) => Some(putMeta(id, Meta(l.reverse, st, pages)))
 
 		try {
 			document.setInputStream(is, File.createTempFile("grom", "grom").getCanonicalPath)
-			val pages = document.getNumberOfPages
+			pages = document.getNumberOfPages
 
 			Logger debug "File " + id + " has " + pages + " pages"
 
@@ -50,10 +52,13 @@ object PdfToPng extends Extractable with PdfCapable {
 				val fixAndSend = (scale:Float) => convertAndSend ((document, id, i, scale))
 
 				l = Png(i + 1, fixAndSend (cs), fixAndSend (ps)) :: l
-				result = Some(putMeta(id, Meta(l.reverse, status, pages)))
+				result = meta (status)
 			}
 		} catch {
-			case e: Throwable => Logger.error("Stopping processing " + e.getMessage, e)
+			case e: Throwable => {
+				Logger.error("Stopping processing " + e.getMessage, e)
+				result = meta (Meta.Error)
+			}
 		}
 
 		is.close()
@@ -76,9 +81,13 @@ object PdfToPng extends Extractable with PdfCapable {
 	}
 
 	private def putMeta (key: String, m: Meta): Meta = {
-		val json = m.toJson
-		Context.getStorage.get.storeMeta (key+metaSuffix, Json.stringify(json))
-		m
+		try {
+			val json = m.toJson
+			context.getStorage.get.storeMeta (key+metaSuffix, Json.stringify(json))
+			m
+		} catch {
+			case e:Throwable => Logger error e.getMessage; Meta(m.pages, Meta.Error, m.total)
+		}
 	}
 }
 

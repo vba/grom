@@ -5,8 +5,10 @@ import collection.{Seq}
 
 
 object Meta {
+	var Await = "await"
 	val InProgress = "in_progress"
 	val Done = "done"
+	val Error = "error"
 }
 
 case class Meta(pages: List[Png], status: String = Meta.InProgress, total: Int = 1) {
