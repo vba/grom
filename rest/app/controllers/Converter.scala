@@ -31,7 +31,7 @@ object Converter extends Controller {
 
 		if (!exists) {
 			val json = Meta (List.empty[Png], Meta.Await, 0).toJson
-			val status = SimpleResult(
+			val status = SimpleResult (
 				header = header,
 				body = Enumerator (Json stringify json)
 			)
