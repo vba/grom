@@ -16,7 +16,7 @@ object ApplicationBuild extends Build {
 		"org.openoffice" % "ridl" % "3.2.1",
 		"org.openoffice" % "unoil" % "3.2.1",
 		"org.json" % "json" % "20090211",
-		"commons-io" % "commons-io" % "20030203.000550"
+		"commons-io" % "commons-io" % "2.1"
 	)
 
 
