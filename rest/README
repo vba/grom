@@ -13,7 +13,7 @@
 
 ## Dependencies
 
-	- ICEpdf v4.3.1 community edition (http://www.icesoft.org/projects/ICEpdf/features-benefits.jsf) under apache 2.0 licence
+	- ICEpdf v4.3.1 community edition (http://www.icesoft.org/projects/ICEpdf/features-benefits.jsf) under apache 2.0 license
 	- JODConverter v3.0-beta-4 (http://code.google.com/p/jodconverter) under gnu lesser general public license
 
 ## Requirements
