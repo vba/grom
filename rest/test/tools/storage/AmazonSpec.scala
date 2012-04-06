@@ -9,6 +9,7 @@ import com.amazonaws.AmazonClientException
 import play.api.Configuration
 import com.amazonaws.services.s3.model.{ObjectMetadata, AmazonS3Exception, S3Object}
 import java.io.{ByteArrayInputStream, FileInputStream, File, InputStream}
+import io.Codec
 
 
 class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito {
@@ -117,14 +118,14 @@ class AmazonSpec extends SpecificationWithJUnit with Specification with Mockito 
 			val text = "Bèjôür"
 
 			Amazon.newMeta = () => meta1
-			Amazon.newByteInputStream = (ba:Array[Byte]) => { text.getBytes("utf8") must_== ba; is }
+			Amazon.newByteInputStream = (ba:Array[Byte]) => { text.getBytes(Codec.UTF8.name()) must_== ba; is }
 			Amazon.client = Some (client)
 
 			Amazon.storeMeta (key, text)
 
-			there was one (meta1).setContentEncoding("utf-8")
+			there was one (meta1).setContentEncoding(Codec.UTF8.name())
 			there was one (meta1).setContentType("application/json")
-			there was one (meta1).setContentLength(text.getBytes("utf8").length)
+			there was one (meta1).setContentLength(text.getBytes(Codec.UTF8.name()).length)
 			there was one (client).putObject (Amazon.bucket, key, is, meta1)
 
 			Amazon.newByteInputStream = f1

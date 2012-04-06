@@ -5,9 +5,9 @@ import com.amazonaws.auth.{BasicAWSCredentials => Credentials}
 import com.amazonaws.services.s3.model.{AmazonS3Exception, ObjectMetadata}
 import java.io._
 import scala.collection.JavaConversions._
-import collection.{Seq, Map, JavaConversions}
-import play.api.{Play, Logger, Configuration}
-import play.api.Play.current
+import collection.Seq
+import play.api.{Logger, Configuration}
+import io.Codec
 
 object Amazon extends Storage {
 
@@ -40,9 +40,9 @@ object Amazon extends Storage {
 
 	def storeMeta(key: String, content: String) {
 		val meta = newMeta()
-		val bytes = content getBytes "utf-8"
+		val bytes = content getBytes Codec.UTF8.name()
 
-		meta setContentEncoding "utf-8"
+		meta setContentEncoding Codec.UTF8.name()
 		meta setContentType "application/json"
 		meta setContentLength bytes.length
 
