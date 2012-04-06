@@ -1,0 +1,32 @@
+<configuration>
+
+	<conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>${application.home}/logs/grom-file.log</file>
+		<encoder>
+			<pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+		</encoder>
+	</appender>
+
+
+	<root level="WARN">
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="FILE"/>
+	</root>
+
+	<logger name="play" level="DEBUG"/>
+	<logger name="application" level="DEBUG"/>
+	<logger name="httpclient" level="ERROR"/>
+	<logger name="org.apache.commons" level="ERROR"/>
+	<logger name="com.amazonaws" level="ERROR"/>
+	<logger name="org.icepdf" level="ERROR"/>
+	<logger name="org.icepdf.core.util.ContentParser" level="ERROR"/>
+
+</configuration>
