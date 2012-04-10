@@ -5,7 +5,7 @@ import collection.{Seq}
 
 
 object Meta {
-	var Await = "await"
+	val Await = "await"
 	val InProgress = "in_progress"
 	val Done = "done"
 	val Error = "error"
