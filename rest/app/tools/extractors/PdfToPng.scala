@@ -3,7 +3,7 @@ package tools.extractors
 import play.api.Logger
 import tools.Context
 import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
+import javax.imageio.{ImageIO, ImageTypeSpecifier, ImageWriteParam, IIOImage}
 import org.icepdf.core.util.GraphicsRenderingHints
 import org.icepdf.core.pobjects.{Page, Document}
 import play.api.libs.json.Json
@@ -14,7 +14,15 @@ import java.io.{FileInputStream, InputStream, File}
 object PdfToPng extends Extractable with PdfCapable {
 
 	private[extractors] var makeDocument: () => Document = () => new Document
-	private[extractors] var toFile = (i:BufferedImage, f:File) => ImageIO.write (i, "png", f)
+
+	private[extractors] var toFile = (i:BufferedImage, f:File) => {
+		val writer = ImageIO.getImageWritersByFormatName("png").next()
+		writer.setOutput(ImageIO.createImageOutputStream(f))
+		val params = writer.getDefaultWriteParam()
+		params.setProgressiveMode(ImageWriteParam.MODE_DEFAULT)
+		val outputMeta = writer.convertImageMetadata(null, new ImageTypeSpecifier(i), params)
+		writer.write(null, new IIOImage(i, null, outputMeta), params)
+	}
 
 	override def extract (id: String): Option[Meta] = {
 
