@@ -51,7 +51,7 @@ class ConverterSpec extends SpecificationWithJUnit with Specification with Mocki
 			val pages1 = Converter.pages(key1, "application/pdf")
 
 			pages1 must_!= null
-			pages1.isInstanceOf[SimpleResult[String]] must_== true
+			pages1.isInstanceOf[SimpleResult[_]] must_== true
 			val header1 = pages1.asInstanceOf[SimpleResult[String]].header
 			header1.status must_== 200
 			header1.headers.containsKey("Content-Type") must_== true
