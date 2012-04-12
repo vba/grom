@@ -2,10 +2,8 @@ package controllers
 
 import play.api._
 import libs.iteratee.Enumerator
-import libs.iteratee.Enumerator._
 import play.api.mvc._
 import play.api.Play.current
-import java.util.Scanner
 import tools.{Context, Configurable}
 
 object Configuration extends Controller{

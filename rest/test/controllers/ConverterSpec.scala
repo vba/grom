@@ -10,7 +10,6 @@ import collection.mutable.Set
 import tools.dto.{OfficeKey, Key, PdfKey}
 import tools.extractors.PdfToPng
 import java.io.InputStream
-import play.api.mvc.SimpleResult
 import play.api.mvc._
 
 
