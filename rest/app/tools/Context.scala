@@ -20,12 +20,14 @@ trait Configurable {
 	def processKeys ()
 	def conversionScale: Float
 	def previewScale: Float
+	def configIsVisible: Boolean
 }
 
 object Context extends Configurable {
 
 	private[tools] val keysToProcess = new HashSet[Key] with SynchronizedSet[Key]
 	private[tools]  val keysInProcess = new HashSet[Key] with SynchronizedSet[Key]
+
 	var isProd = () => Play.isProd
 	var isDev = () => Play.isDev
 	var isTest = () => Play.isTest
@@ -50,6 +52,10 @@ object Context extends Configurable {
 		}
 		
 		storage = Some (provider.get configure conf)
+
+		if (conf.getBoolean("conversion.allow_config_display").getOrElse(false)) {
+			Logger warn "Be careful, allow config display is activated"
+		}
 	}
 
 	def startOffice () {
@@ -92,6 +98,10 @@ object Context extends Configurable {
 
 		Logger debug "Ending "+key
 	}
+
+	def configIsVisible = Play.configuration
+		.getBoolean("conversion.allow_config_display")
+		.getOrElse(false);
 
 	private def getConfigByKey[T <: String] (k:T, df:T=""): T = {
 		config.get.getString ("conversion.".concat(k), None).getOrElse(df).asInstanceOf[T]
