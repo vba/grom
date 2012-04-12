@@ -39,6 +39,7 @@ class PdfToPngSpec extends SpecificationWithJUnit with Specification with Mockit
 			conf.getString("fs.outbox", None) returns Some(base.concat("/target/test-out"))
 			conf.getString("conversion.scale", None) returns Some("1.5")
 			conf.getString("conversion.preview_scale", None) returns Some("0.3")
+			conf.getBoolean("conversion.allow_config_display") returns Some(false)
 
 			Context.configure(conf)
 			Context.getStorage must_!= None
