@@ -15,13 +15,17 @@ object PdfToPng extends Extractable with PdfCapable {
 
 	private[extractors] var makeDocument: () => Document = () => new Document
 
-	private[extractors] var toFile = (i:BufferedImage, f:File) => {
-		val writer = ImageIO.getImageWritersByFormatName("png").next()
-		writer.setOutput(ImageIO.createImageOutputStream(f))
-		val params = writer.getDefaultWriteParam()
-		params.setProgressiveMode(ImageWriteParam.MODE_DEFAULT)
-		val outputMeta = writer.convertImageMetadata(null, new ImageTypeSpecifier(i), params)
-		writer.write(null, new IIOImage(i, null, outputMeta), params)
+	private[extractors] var toFile = (i:BufferedImage, f:File, p:Boolean = true) => {
+		if (!p) {
+			ImageIO.write(i, "png", f)
+		} else {
+			val writer = ImageIO.getImageWritersByFormatName("png").next()
+			writer.setOutput(ImageIO.createImageOutputStream(f))
+			val params = writer.getDefaultWriteParam()
+			params.setProgressiveMode(ImageWriteParam.MODE_DEFAULT)
+			val outputMeta = writer.convertImageMetadata(null, new ImageTypeSpecifier(i), params)
+			writer.write(null, new IIOImage(i, null, outputMeta), params)
+		}
 	}
 
 	override def extract (id: String): Option[Meta] = {
