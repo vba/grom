@@ -13,10 +13,12 @@ import java.io.{FileInputStream, InputStream, File}
 
 object PdfToPng extends Extractable with PdfCapable {
 
+	var forceProgressive = true
+
 	private[extractors] var makeDocument: () => Document = () => new Document
 
-	private[extractors] var toFile = (i:BufferedImage, f:File, p:Boolean = true) => {
-		if (!p) {
+	private[extractors] var toFile = (i:BufferedImage, f:File) => {
+		if (!forceProgressive) {
 			ImageIO.write(i, "png", f)
 		} else {
 			val writer = ImageIO.getImageWritersByFormatName("png").next()
